@@ -7,6 +7,8 @@ import com.fieldstory.farm.model.Farm;
 import com.fieldstory.farm.model.GameClock;
 import com.fieldstory.farm.model.GrowthStage;
 import com.fieldstory.farm.model.Soil;
+import com.fieldstory.farm.service.HarvestResult;
+import com.fieldstory.farm.service.HarvestService;
 import com.fieldstory.farm.service.LandService;
 import com.fieldstory.farm.service.PlantingResult;
 import com.fieldstory.farm.service.PlantingService;
@@ -16,8 +18,6 @@ import com.fieldstory.farm.service.WateringService;
 import com.fieldstory.farm.view.FarmView;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.StackPane;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +31,10 @@ import java.util.List;
  * （{@link #actionsFor}）。业务一律走 A 的 Service：
  * 开垦→LandService.reclaim、播种→PlantingService.plant、浇水→WateringService.water。
  *
- * <p>收获按钮 P0 保持禁用（C 模块 BasicHarvestService 未交付，
- * 收获是 C 的职责，A 禁止实现收获逻辑，决策 D09）。
+ * <p>收获：C 模块 BasicHarvestService 已交付，本控制器只做接线——
+ * 调用注入的 {@link HarvestService#harvest(Soil)} 并按结果码刷新界面；
+ * 收获业务（读取售价、金币入账、土地回退）全部在 C 的服务内完成
+ * （决策 D09：土地回退经 A 的 LandService.removeCropAndSetTilled）。
  *
  * <p>浇水 currentGameDay 不再用 P0 常量：当前游戏日来自 D 的
  * GameClock.getGameDay()，浇水时传入 WateringService，
@@ -43,8 +45,6 @@ import java.util.List;
  */
 public class FarmViewController {
 
-    /** 收获按钮禁用提示（决策 D09：收获是 C 模块职责，A 只提供 removeCropAndSetTilled 给 C 调） */
-    private static final String HARVEST_DISABLED_TIP = "待 C 模块收获服务接入";
 
     /** 农场模型（12×12，中心 8×8 为 FARM_PLOT） */
     private final Farm farm;
@@ -58,28 +58,37 @@ public class FarmViewController {
     /** 浇水服务（A：三重校验 + 浇水计数） */
     private final WateringService wateringService;
 
-    /** 游戏时钟（D：当前游戏日唯一来源，决策 D14 时间口径 long） */
+    /** 收获服务（C：MATURE 收获，售价入账 + 土地回退） */
+    private final HarvestService harvestService;
+
+    /** 游戏时钟（D：当前游戏日，浇水/播种视图刷新基准） */
     private final GameClock gameClock;
 
     /** 农场画布视图 */
     private final FarmView farmView;
 
     /**
-     * 装配视图与三个 A 模块 Service。
+     * 装配视图、四个 Service（三个 A + 一个 C 收获）与 D 的时钟。
      *
      * @param farm            农场模型
      * @param landService     开垦服务
      * @param plantingService 播种服务
      * @param wateringService 浇水服务
-     * @param gameClock       游戏时钟（D：当前游戏日来源）
+     * @param harvestService  收获服务
+     * @param gameClock       游戏时钟
      */
-    public FarmViewController(Farm farm, LandService landService,
-                              PlantingService plantingService, WateringService wateringService,
-                              GameClock gameClock) {
+    public FarmViewController(
+            Farm farm,
+            LandService landService,
+            PlantingService plantingService,
+            WateringService wateringService,
+            HarvestService harvestService,
+            GameClock gameClock) {
         this.farm = farm;
         this.landService = landService;
         this.plantingService = plantingService;
         this.wateringService = wateringService;
+        this.harvestService = harvestService;
         this.gameClock = gameClock;
         this.farmView = new FarmView(farm);
         this.farmView.setOnTileSelected(this::onTileSelected);
@@ -185,6 +194,24 @@ public class FarmViewController {
         }
     }
 
+    /**
+     * 纯函数：收获结果码 → 用户提示文案
+     * （C 模块 BasicHarvestService 结果码；设计文档 D13 文案由 Controller 映射）。
+     */
+    public static String actionMessageFor(HarvestResult result) {
+        switch (result) {
+            case SUCCESS:
+                return "收获成功";
+            case NOT_PLANTED:
+            case NO_CROP:
+                return "该格没有可收获的作物";
+            case NOT_MATURE:
+                return "作物还没成熟";
+            default:
+                return "收获失败";
+        }
+    }
+
     // ==================== 交互（UI规范 §11、§12） ====================
 
     /** 点击格回调：选中 + 按状态弹菜单；装饰区点击收起菜单。 */
@@ -205,22 +232,13 @@ public class FarmViewController {
         farmView.showMenuFor(soil, buildButtons(soil, actions));
     }
 
-    /** 按动作生成菜单按钮；HARVEST 禁用并挂提示（决策 D09）。 */
+    /** 按动作生成菜单按钮（UI规范 §12；HARVEST 由 C 的 HarvestService 执行）。 */
     private List<Node> buildButtons(Soil soil, List<FarmAction> actions) {
         List<Node> buttons = new ArrayList<>();
         for (FarmAction action : actions) {
             Button button = farmView.createMenuButton(labelFor(action));
-            if (action == FarmAction.HARVEST) {
-                // 收获：P0 禁用（C 模块职责，D09）；禁用控件不响应鼠标，
-                // 包一层容器使 Tooltip 仍可显示
-                button.setDisable(true);
-                StackPane wrapper = new StackPane(button);
-                Tooltip.install(wrapper, new Tooltip(HARVEST_DISABLED_TIP));
-                buttons.add(wrapper);
-            } else {
-                button.setOnAction(event -> perform(soil, action));
-                buttons.add(button);
-            }
+            button.setOnAction(event -> perform(soil, action));
+            buttons.add(button);
         }
         return buttons;
     }
@@ -254,8 +272,9 @@ public class FarmViewController {
                 water(soil);
                 break;
             case HARVEST:
+                harvest(soil);
+                break;
             default:
-                // 收获：P0 禁用，A 禁止实现收获逻辑（决策 D09，C 模块职责）
                 break;
         }
     }
@@ -309,6 +328,20 @@ public class FarmViewController {
         if (result == WateringResult.SUCCESS) {
             farmView.hideMenu();
             farmView.setCurrentGameDay(gameClock.getGameDay());
+            farmView.refreshTile(soil);
+        } else {
+            farmView.showTip(soil, actionMessageFor(result));
+        }
+    }
+
+    /**
+     * 收获：MATURE→成功（售价入账 + 土地回退 TILLED，验收规范 §三十一 由
+     * C 的 BasicHarvestService 完成；本控制器只接线与刷新，决策 D09）。
+     */
+    private void harvest(Soil soil) {
+        HarvestResult result = harvestService.harvest(soil);
+        if (result == HarvestResult.SUCCESS) {
+            farmView.hideMenu();
             farmView.refreshTile(soil);
         } else {
             farmView.showTip(soil, actionMessageFor(result));

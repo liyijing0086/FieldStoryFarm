@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -107,5 +108,25 @@ class BasicGameClockTest {
     void offlineDurationIsZeroInP0() {
         GameClock clock = new BasicGameClock();
         assertEquals(0L, clock.calculateOfflineDuration());
+    }
+
+    @Test
+    void setTotalMinutesRejectsNegative() {
+        GameClock clock = new BasicGameClock();
+        assertThrows(IllegalArgumentException.class, () -> clock.setTotalMinutes(-1),
+                "totalMinutes < 0 应抛 IllegalArgumentException");
+    }
+
+    @Test
+    void constructorRejectsNegativeTotalMinutes() {
+        assertThrows(IllegalArgumentException.class, () -> new BasicGameClock(-1),
+                "构造器 totalMinutes < 0 应抛 IllegalArgumentException");
+    }
+
+    @Test
+    void setTotalMinutesZeroIsAllowed() {
+        GameClock clock = new BasicGameClock();
+        clock.setTotalMinutes(0);
+        assertEquals(0, clock.getTotalMinutes());
     }
 }

@@ -7,6 +7,7 @@ import com.fieldstory.farm.model.Soil;
 import com.fieldstory.farm.model.SoilState;
 import com.fieldstory.farm.model.impl.BasicCrop;
 import com.fieldstory.farm.model.impl.BasicSoil;
+import com.fieldstory.farm.service.HarvestResult;
 import com.fieldstory.farm.service.PlantingResult;
 import com.fieldstory.farm.service.ReclaimResult;
 import com.fieldstory.farm.service.WateringResult;
@@ -102,5 +103,14 @@ class FarmViewControllerTest {
         assertEquals("种子阶段还不能浇水", FarmViewController.actionMessageFor(WateringResult.SEED_STAGE));
         assertEquals("今天已经浇过水了", FarmViewController.actionMessageFor(WateringResult.ALREADY_WATERED_TODAY));
         assertEquals("这株作物已经不需要浇水了", FarmViewController.actionMessageFor(WateringResult.WATER_LIMIT_REACHED));
+    }
+
+    @Test
+    void actionMessageForHarvestResults() {
+        // C 模块 BasicHarvestService 结果码 → 文案（D13：枚举不挂文案）
+        assertEquals("收获成功", FarmViewController.actionMessageFor(HarvestResult.SUCCESS));
+        assertEquals("该格没有可收获的作物", FarmViewController.actionMessageFor(HarvestResult.NOT_PLANTED));
+        assertEquals("该格没有可收获的作物", FarmViewController.actionMessageFor(HarvestResult.NO_CROP));
+        assertEquals("作物还没成熟", FarmViewController.actionMessageFor(HarvestResult.NOT_MATURE));
     }
 }
