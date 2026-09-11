@@ -34,10 +34,11 @@ public class BasicGameClock implements GameClock {
     /**
      * 指定总分钟数构造，用于存档恢复（验收规范 §41）。
      *
-     * @param totalMinutes 总分钟数
+     * @param totalMinutes 总分钟数（必须 ≥ 0）
+     * @throws IllegalArgumentException 当 {@code totalMinutes < 0} 时
      */
     public BasicGameClock(int totalMinutes) {
-        this.totalMinutes = totalMinutes;
+        setTotalMinutes(totalMinutes);
     }
 
     @Override
@@ -94,6 +95,9 @@ public class BasicGameClock implements GameClock {
 
     @Override
     public void setTotalMinutes(int totalMinutes) {
+        if (totalMinutes < 0) {
+            throw new IllegalArgumentException("总分钟数不得为负: " + totalMinutes);
+        }
         this.totalMinutes = totalMinutes;
     }
 }
