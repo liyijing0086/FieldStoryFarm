@@ -25,7 +25,11 @@ import com.fieldstory.farm.service.impl.BasicWateringService;
 import com.fieldstory.farm.util.GameConstants;
 import com.fieldstory.farm.view.StatusView;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 
 /**
  * 主界面控制器（E 场景组装：开始按钮装配 A/B/C/D 各模块，构成可玩最小闭环）。
@@ -42,7 +46,24 @@ public class MainController {
     private Label welcomeText;
 
     /** 全局唯一游戏管理器（单例） */
-    private final GameManager gameManager = GameManager.getInstance();
+    private final GameManager gameManager;
+
+    /** 顶栏常驻提示标签（开局后主菜单被替换，承接「进度已保存」等反馈） */
+    private Label topHintLabel;
+
+    /** FXML 默认构造：使用全局唯一 {@link GameManager} 单例。 */
+    public MainController() {
+        this(GameManager.getInstance());
+    }
+
+    /**
+     * 允许注入 {@link GameManager}（单测用，避免触碰真实 SQLite 存档）。
+     *
+     * @param gameManager 游戏管理器
+     */
+    MainController(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
 
     /** 本次会话是否已完成装配（防止重复点击“开始游戏”重复装配） */
     private boolean assembled = false;
@@ -108,7 +129,7 @@ public class MainController {
 
         // g. 状态栏挂到场景顶部（TOP）
         StatusView statusView = new StatusView(model, player);
-        SceneManager.getInstance().mount(SceneManager.Slot.TOP, statusView);
+        buildTopBar(statusView);
 
         // h. 主循环：每秒推进 10 分钟；跨天回调协调作物成长
         lastGrowthDay = model.getGameClock().getGameDay();
@@ -161,9 +182,39 @@ public class MainController {
     protected void onSaveButtonClick() {
         try {
             gameManager.saveNow();
-            welcomeText.setText("进度已保存！");
+            setStatusMessage("进度已保存！");
         } catch (IllegalStateException e) {
-            welcomeText.setText("尚无进行中的游戏，请先点击“开始游戏”。");
+            setStatusMessage("尚无进行中的游戏，请先点击“开始游戏”。");
+        }
+    }
+
+    /**
+     * 构建常驻顶栏：状态栏 + 手动存档按钮 + 反馈标签，并挂到 TOP 槽位。
+     *
+     * <p>开局后农场视图会替换 CENTER 的主菜单，手动存档入口必须放在常驻的 TOP，
+     * 否则 main-view.fxml 的「保存进度」按钮开局后不可达（PAUSED 亦无 UI 入口）。
+     *
+     * <p>抽为独立方法便于单测「开局后存档入口仍可达」，且不触发主循环与真实落盘。
+     *
+     * @param statusView 状态栏视图
+     */
+    void buildTopBar(StatusView statusView) {
+        Button saveButton = new Button("保存进度");
+        saveButton.setOnAction(event -> onSaveButtonClick());
+        topHintLabel = new Label();
+        HBox topBar = new HBox(16, statusView, saveButton, topHintLabel);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(6, 12, 6, 12));
+        SceneManager.getInstance().mount(SceneManager.Slot.TOP, topBar);
+    }
+
+    /** 统一提示输出：主菜单可见时写欢迎语，开局后写到顶栏常驻标签，保证反馈始终可见。 */
+    private void setStatusMessage(String message) {
+        if (welcomeText != null) {
+            welcomeText.setText(message);
+        }
+        if (topHintLabel != null) {
+            topHintLabel.setText(message);
         }
     }
 }

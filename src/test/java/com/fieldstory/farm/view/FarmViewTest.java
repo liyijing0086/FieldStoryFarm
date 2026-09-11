@@ -149,4 +149,46 @@ class FarmViewTest {
         assertEquals("已成熟，可收获",
                 FarmView.tooltipTextFor(plantedSoil(GrowthStage.MATURE, -1), 0L));
     }
+
+    // ==================== 坏数据兜底：null 枚举不抛 NPE（P1 设计文档 §3：crop_type 允许 NULL） ====================
+
+    /**
+     * growth_stage 无法识别 → 适配层降级 null（FarmStateAdapter.parseEnum）；
+     * cropBlockSizeFor(null) 不得抛 NPE，按不可绘制处理返回 0。
+     */
+    @Test
+    void cropBlockSizeForNullStageReturnsZero() {
+        assertEquals(0, FarmView.cropBlockSizeFor(null));
+    }
+
+    /**
+     * crop_type 无法识别 → 适配层降级 null；tooltipTextFor 不得抛 NPE，
+     * 以占位名显示（回归「开始游戏」读档时 FarmView.buildTiles 崩溃）。
+     */
+    @Test
+    void tooltipTextForUnknownCropTypeShowsPlaceholder() {
+        Soil soil = soil(SoilState.PLANTED);
+        Crop crop = new BasicCrop();
+        crop.setCropType(null);
+        crop.setGrowthStage(GrowthStage.SPROUT);
+        crop.setGrowthProgress(50);
+        crop.setLastManualWaterGameDay(-1);
+        soil.setCrop(crop);
+
+        assertEquals("未知作物 成长50% 今日未浇", FarmView.tooltipTextFor(soil, 0L));
+    }
+
+    /** growth_stage 为 null 时 tooltipTextFor 也不得抛 NPE。 */
+    @Test
+    void tooltipTextForNullStageDoesNotThrow() {
+        Soil soil = soil(SoilState.PLANTED);
+        Crop crop = new BasicCrop();
+        crop.setCropType(CropType.WHEAT);
+        crop.setGrowthStage(null);
+        crop.setGrowthProgress(50);
+        crop.setLastManualWaterGameDay(-1);
+        soil.setCrop(crop);
+
+        assertEquals("小麦 成长50% 今日未浇", FarmView.tooltipTextFor(soil, 0L));
+    }
 }

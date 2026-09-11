@@ -36,6 +36,11 @@ public class BasicGrowthService implements GrowthService {
 
     @Override
     public double calculateGrowthDelta(Crop crop, double elapsedGameDays) {
+        // 坏数据兜底：crop_type 无法识别时为 null（存档允许 crop_type=NULL），
+        // 无法取每日基础进度，降级为 0（不成长）而非抛 NPE 中断跨天循环。
+        if (crop.getCropType() == null) {
+            return 0.0;
+        }
         double base = crop.getCropType().getBaseDailyProgress();
         // 天气/装饰/事件 Rate 在 P0 固定 1.0，公式中省略（验收规范 §二十四）
         double operationRate = 1.0 + wateringService.calculateWaterGrowthBonus(crop);
