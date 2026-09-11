@@ -30,6 +30,9 @@ public class GameState {
     /** 全部土地格子状态快照（A Farm 接入后由适配层从 Farm/Soil/Crop 生成） */
     private final java.util.List<PlotState> plots = new java.util.ArrayList<>();
 
+    /** 装饰快照（P1 装饰系统接入后由 B 侧写入；P0 为空，对应 SQLite decoration 表） */
+    private final java.util.List<DecorationState> decorations = new java.util.ArrayList<>();
+
     public GameState() {
         this(null, 0L);
     }
@@ -73,5 +76,10 @@ public class GameState {
     /** 全部土地格子状态快照。 */
     public java.util.List<PlotState> getPlots() {
         return plots;
+    }
+
+    /** 装饰快照（P1 起持久化到 SQLite decoration 表；P0 为空）。 */
+    public java.util.List<DecorationState> getDecorations() {
+        return decorations;
     }
 }

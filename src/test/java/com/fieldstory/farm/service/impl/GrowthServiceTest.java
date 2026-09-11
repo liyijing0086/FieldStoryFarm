@@ -98,4 +98,29 @@ class GrowthServiceTest {
         growthService.applyGrowth(crop, 0.0);
         assertEquals(expected, crop.getGrowthStage());
     }
+
+    // ==================== 坏数据兜底：crop_type 为 null 不抛 NPE（P1 文档 §3：crop_type 允许 NULL） ====================
+
+    /**
+     * crop_type 无法识别 → 适配层降级 null；calculateGrowthDelta 不得抛 NPE，
+     * 无法取每日基础进度时降级为 0（回归跨天/浇水时 BasicGrowthService 崩溃）。
+     */
+    @Test
+    void calculateGrowthDeltaWithNullCropTypeReturnsZero() {
+        Crop crop = wheat();
+        crop.setCropType(null);
+        assertEquals(0.0, growthService.calculateGrowthDelta(crop, 1.0), 1e-9);
+    }
+
+    /** crop_type 为 null 时 applyGrowth 不抛 NPE，且进度不变（delta=0）。 */
+    @Test
+    void applyGrowthWithNullCropTypeKeepsProgress() {
+        Crop crop = wheat();
+        crop.setCropType(null);
+        crop.setGrowthProgress(30.0);
+
+        growthService.applyGrowth(crop, 1.0);
+
+        assertEquals(30.0, crop.getGrowthProgress(), 1e-9);
+    }
 }

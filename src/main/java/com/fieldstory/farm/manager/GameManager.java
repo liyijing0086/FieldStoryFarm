@@ -2,7 +2,7 @@ package com.fieldstory.farm.manager;
 
 import com.fieldstory.farm.model.GameState;
 import com.fieldstory.farm.model.Player;
-import com.fieldstory.farm.persistence.JsonSaveService;
+import com.fieldstory.farm.persistence.SqliteSaveService;
 import com.fieldstory.farm.service.SaveService;
 import com.fieldstory.farm.util.GameConstants;
 
@@ -33,12 +33,19 @@ public class GameManager {
 
     private static final String DEFAULT_PLAYER_NAME = "农夫";
 
-    /** 全局唯一实例（单例，默认 JsonSaveService 写 data/save.json） */
+    /** 全局唯一实例（单例，P1 起默认 {@link SqliteSaveService} 写 {@code data/farm.db}） */
     private static volatile GameManager instance;
 
     private final SaveService saveService;
     private GameState state;
     private GamePhase phase;
+
+    /**
+     * 存档前回填钩子：落盘前把「运行中的游戏对象」（如 A 模块 {@code Farm} 的
+     * 土地/作物）同步进 {@link GameState} 快照，使退出自动保存与手动保存都能
+     * 覆盖农场进度（由装配层注册，见 {@code MainController}）。
+     */
+    private Runnable beforeSaveHook;
 
     /**
      * 构造管理器并装配存档服务。
@@ -51,14 +58,15 @@ public class GameManager {
     }
 
     /**
-     * 全局唯一实例（单例）：P0 默认使用 {@link JsonSaveService}（data/save.json）。
+     * 全局唯一实例（单例）：P1 起默认使用 {@link SqliteSaveService}（{@code data/farm.db}，
+     * 首次运行会把旧 {@code data/save.json} 一次性迁移进 SQLite，验收规范 §七十四）。
      * 全游戏共享此入口。
      */
     public static GameManager getInstance() {
         if (instance == null) {
             synchronized (GameManager.class) {
                 if (instance == null) {
-                    instance = new GameManager(new JsonSaveService());
+                    instance = new GameManager(new SqliteSaveService());
                 }
             }
         }
@@ -86,7 +94,7 @@ public class GameManager {
     /**
      * 开始游戏（主菜单 → 游戏中）：
      * <pre>
-     * 有存档 → 读取 JSON 恢复到退出瞬间（不做离线成长）
+     * 有存档 → 读取数据库（P1：SQLite）恢复到退出瞬间（不做离线成长）
      * 无存档 → 新建游戏（金币 500，游戏天数 0）
      * 存档损坏/版本不符 → 降级为新建游戏，不让启动崩溃
      * </pre>
@@ -95,13 +103,13 @@ public class GameManager {
      */
     public GameState start() {
         if (state == null) {
-            if (saveService.hasSave()) {
-                try {
+            try {
+                if (saveService.hasSave()) {
                     state = saveService.load();
-                } catch (IllegalStateException e) {
-                    System.err.println("[GameManager] 存档不可用，将新建游戏: " + e.getMessage());
-                    state = null;
                 }
+            } catch (IllegalStateException e) {
+                System.err.println("[GameManager] 存档不可用，将新建游戏: " + e.getMessage());
+                state = null;
             }
             if (state == null) {
                 state = newGame();
@@ -135,7 +143,24 @@ public class GameManager {
         if (state == null) {
             throw new IllegalStateException("游戏尚未启动，无法保存");
         }
+        refreshBeforeSave();
         saveService.save(state);
+    }
+
+    /**
+     * 注册存档前回填钩子（装配层在农场就绪后调用）；传 {@code null} 可清除。
+     * 钩子只应在落盘前把运行态写入 {@link GameState}，不得改变阶段或触发存档。
+     */
+    public void setBeforeSaveHook(Runnable beforeSaveHook) {
+        this.beforeSaveHook = beforeSaveHook;
+    }
+
+    /** 执行存档前回填钩子（未注册则跳过）；钩子异常不吞，向上抛出以暴露装配错误。 */
+    private void refreshBeforeSave() {
+        Runnable hook = this.beforeSaveHook;
+        if (hook != null) {
+            hook.run();
+        }
     }
 
     /**
@@ -144,6 +169,7 @@ public class GameManager {
      */
     public void saveAndExit() {
         if (state != null && (phase == GamePhase.PLAYING || phase == GamePhase.PAUSED)) {
+            refreshBeforeSave();
             saveService.save(state);
         }
         phase = GamePhase.EXITING;

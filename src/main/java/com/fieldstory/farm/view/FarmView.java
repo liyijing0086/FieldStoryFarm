@@ -223,6 +223,11 @@ public class FarmView extends Pane {
      * @return 占位块边长（像素）
      */
     public static int cropBlockSizeFor(GrowthStage stage) {
+        // 坏数据兜底：growth_stage 无法识别时适配层降级为 null（FarmStateAdapter.parseEnum），
+        // 此处不得抛 NPE；未知阶段不绘制占位块（返回 0）。
+        if (stage == null) {
+            return 0;
+        }
         switch (stage) {
             case SEED:
                 return 8;
@@ -235,6 +240,17 @@ public class FarmView extends Pane {
             default:
                 return 0;
         }
+    }
+
+    /**
+     * 坏数据兜底：crop_type 无法识别时为 null（存档允许 {@code crop_type=NULL}，
+     * P1 设计文档 §3），返回占位名而非抛 NPE。
+     *
+     * @param crop 作物快照
+     * @return 展示名；{@code crop.getCropType()} 为 null 时返回占位名
+     */
+    private static String cropTypeNameFor(Crop crop) {
+        return crop.getCropType() == null ? "未知作物" : crop.getCropType().getDisplayName();
     }
 
     /**
@@ -266,7 +282,7 @@ public class FarmView extends Pane {
                 }
                 // "今日已浇"判定：lastManualWaterGameDay == 当前游戏日（决策 D14 long 用 ==）
                 boolean wateredToday = crop.getLastManualWaterGameDay() == currentGameDay;
-                return crop.getCropType().getDisplayName() + " 成长"
+                return cropTypeNameFor(crop) + " 成长"
                         + (int) crop.getGrowthProgress() + "% 今日"
                         + (wateredToday ? "已浇" : "未浇");
             case LOCKED:

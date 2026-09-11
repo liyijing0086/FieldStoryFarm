@@ -9,7 +9,8 @@ package com.fieldstory.farm.model;
  *
  * <p>{@code state}/{@code cropType}/{@code growthStage} 以字符串保存，E 不持有
  * A 的 FarmPlot/SoilState/CropType/GrowthStage 枚举，避免在 A 模型交付前形成
- * 跨模块类型依赖；A 模块接入后由适配层在“枚举 ↔ 字符串”之间映射。
+ * 跨模块类型依赖；A 模块接入后由适配层在“枚举 ↔ 字符串”之间映射
+ * （实现见 {@link com.fieldstory.farm.persistence.FarmStateAdapter}）。
  */
 public class PlotState {
 
@@ -36,16 +37,16 @@ public class PlotState {
     /** 成长阶段名（未来对应 GrowthStage 枚举名） */
     private String growthStage;
 
-    /** 成长进度（0.0~1.0，由成长模块写入） */
+    /** 成长进度（A 模块内部口径 0~100，与 {@code CropDao} 一致；由成长模块写入） */
     private double growthProgress;
 
-    /** 播种时刻 GameClock 世界时间（ISO-8601 字符串） */
+    /** 播种时刻世界时间（A 侧 long 游戏小时，以十进制字符串保存；E 不做时间换算） */
     private String plantWorldTime;
 
     /** 主动浇水次数 */
     private int manualWaterCount;
 
-    /** 最近一次主动浇水的游戏日（GameClock 游戏日字符串） */
+    /** 最近一次主动浇水的游戏日（A 侧 long 游戏日，以十进制字符串保存；-1 表示从未浇水） */
     private String lastManualWaterGameDay;
 
     public PlotState() {
