@@ -6,10 +6,10 @@ import com.fieldstory.farm.model.GrowthStage;
 import com.fieldstory.farm.model.Soil;
 import com.fieldstory.farm.model.SoilState;
 import com.fieldstory.farm.model.impl.BasicSoil;
+import com.fieldstory.farm.model.impl.TestGameClock;
 import com.fieldstory.farm.service.PlantingResult;
 import com.fieldstory.farm.service.PlantingService;
 import com.fieldstory.farm.testutil.TestEconomyService;
-import com.fieldstory.farm.testutil.TestGameClock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
