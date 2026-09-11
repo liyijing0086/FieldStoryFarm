@@ -13,12 +13,14 @@ import com.fieldstory.farm.model.Soil;
 import com.fieldstory.farm.model.impl.BasicFarm;
 import com.fieldstory.farm.persistence.FarmStateAdapter;
 import com.fieldstory.farm.service.GrowthService;
+import com.fieldstory.farm.service.HarvestService;
 import com.fieldstory.farm.service.LandService;
 import com.fieldstory.farm.service.PlantingService;
 import com.fieldstory.farm.service.WateringService;
 import com.fieldstory.farm.service.economy.EconomyService;
 import com.fieldstory.farm.service.economy.impl.EconomyServiceImpl;
 import com.fieldstory.farm.service.impl.BasicGrowthService;
+import com.fieldstory.farm.service.impl.BasicHarvestService;
 import com.fieldstory.farm.service.impl.BasicLandService;
 import com.fieldstory.farm.service.impl.BasicPlantingService;
 import com.fieldstory.farm.service.impl.BasicWateringService;
@@ -121,10 +123,11 @@ public class MainController {
         PlantingService planting = new BasicPlantingService(economy, model.getGameClock());
         WateringService watering = new BasicWateringService();
         GrowthService growth = new BasicGrowthService(watering);
+        HarvestService harvest = new BasicHarvestService(economy, land);
 
         // f. 农场视图挂到场景中央（CENTER）
         FarmViewController farmViewController = new FarmViewController(
-                farm, land, planting, watering, model.getGameClock());
+                farm, land, planting, watering, harvest, model.getGameClock());
         farmViewController.mountToScene();
 
         // g. 状态栏挂到场景顶部（TOP）
