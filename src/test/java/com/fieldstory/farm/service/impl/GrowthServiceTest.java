@@ -17,6 +17,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * <p>P0 成长公式：{@code BaseDailyProgress × ElapsedGameDays × (1 + 浇水加成)}；
  * 天气/装饰/事件 Rate 固定 1.0。
  *
+ * <p>P1 升级（A 模块设计文档 §6）：3 参重载第三参 weatherRate，
+ * 公式 {@code Base × Days × WeatherRate × OperationRate}（验收规范 §四十九），
+ * 2 参用例不动、行为不变。
+ *
  * <p>不使用 CropFactory（其内部含 UUID.randomUUID），作物状态手动构造；
  * 不使用系统时间，elapsedGameDays 直接传游戏天数。
  */
@@ -122,5 +126,82 @@ class GrowthServiceTest {
         growthService.applyGrowth(crop, 1.0);
 
         assertEquals(30.0, crop.getGrowthProgress(), 1e-9);
+    }
+
+    // ==================== P1 3 参重载：WeatherRate（验收规范 §四十九；A 模块设计文档 §6） ====================
+
+    /**
+     * WeatherRate 逐值断言：小麦 base=50、elapsed=1、无浇水加成
+     * → rate=1.5 → 75、rate=0.5 → 25、rate=2.0 → 100。
+     */
+    @Test
+    void calculateGrowthDeltaWithWeatherRate() {
+        Crop crop = wheat();
+        assertEquals(75.0, growthService.calculateGrowthDelta(crop, 1.0, 1.5), 1e-9);
+        assertEquals(25.0, growthService.calculateGrowthDelta(crop, 1.0, 0.5), 1e-9);
+        assertEquals(100.0, growthService.calculateGrowthDelta(crop, 1.0, 2.0), 1e-9);
+    }
+
+    /**
+     * 3 参封顶（验收规范 §三十）：progress=95 再成长 1 天（rate=1.5 → +75）
+     * → 钳制 100 且阶段 MATURE。
+     */
+    @Test
+    void applyGrowthWithWeatherRateClampsAt100AndMatures() {
+        Crop crop = wheat();
+        crop.setGrowthProgress(95.0);
+        crop.setGrowthStage(GrowthStage.GROWING);
+
+        growthService.applyGrowth(crop, 1.0, 1.5);
+
+        assertEquals(100.0, crop.getGrowthProgress(), 1e-9);
+        assertEquals(GrowthStage.MATURE, crop.getGrowthStage());
+    }
+
+    /**
+     * 浇水加成 × WeatherRate 连乘（验收规范 §四十九）：
+     * manualWaterCount=1（+5%）× rate=1.5 → 50 × 1 × 1.5 × 1.05 = 78.75。
+     */
+    @Test
+    void calculateGrowthDeltaWithWaterBonusAndWeatherRate() {
+        Crop crop = wheat();
+        crop.setManualWaterCount(1);
+        assertEquals(78.75, growthService.calculateGrowthDelta(crop, 1.0, 1.5), 1e-9);
+    }
+
+    /**
+     * WITHERED 守卫（A 模块设计文档 §6.3）：枯萎作物 applyGrowth 后
+     * progress/stage 均不变，防止 stageOf 把 WITHERED 重算回正常阶段。
+     */
+    @Test
+    void applyGrowthWithWitheredCropKeepsProgressAndStage() {
+        Crop crop = wheat();
+        crop.setGrowthProgress(40.0);
+        crop.setGrowthStage(GrowthStage.WITHERED);
+
+        growthService.applyGrowth(crop, 1.0, 1.5);
+
+        assertEquals(40.0, crop.getGrowthProgress(), 1e-9);
+        assertEquals(GrowthStage.WITHERED, crop.getGrowthStage());
+    }
+
+    /**
+     * 2 参 = 3 参(1.0) 等价性（P0 完全兼容）：同一作物状态下两种调用的
+     * calculateGrowthDelta 与 applyGrowth 结果完全一致。
+     */
+    @Test
+    void twoArgEquivalentToThreeArgWithRateOne() {
+        Crop a = wheat();
+        Crop b = wheat();
+        a.setManualWaterCount(2);
+        b.setManualWaterCount(2);
+
+        assertEquals(growthService.calculateGrowthDelta(a, 0.5),
+                growthService.calculateGrowthDelta(b, 0.5, 1.0), 1e-9);
+
+        growthService.applyGrowth(a, 1.0);
+        growthService.applyGrowth(b, 1.0, 1.0);
+        assertEquals(a.getGrowthProgress(), b.getGrowthProgress(), 1e-9);
+        assertEquals(a.getGrowthStage(), b.getGrowthStage());
     }
 }

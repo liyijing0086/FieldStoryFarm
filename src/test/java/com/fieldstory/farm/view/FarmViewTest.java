@@ -36,6 +36,9 @@ class FarmViewTest {
     /** 高亮 #E8C45C（UI规范 §14） */
     private static final Color HIGHLIGHT = Color.rgb(0xE8, 0xC4, 0x5C);
 
+    /** 枯萎 #857766（P1 D17 候选色 A，待团队确认） */
+    private static final Color WITHERED = Color.rgb(0x85, 0x77, 0x66);
+
     /** 辅助：指定状态的空土地（全局坐标 2,2，中心种植区）。 */
     private static Soil soil(SoilState state) {
         Soil soil = new BasicSoil(2, 2);
@@ -83,6 +86,12 @@ class FarmViewTest {
     @Test
     void tileColorForMatureIsHighlight() {
         assertEquals(HIGHLIGHT, FarmView.tileColorFor(FarmPlot.FARM_PLOT, plantedSoil(GrowthStage.MATURE, -1)));
+    }
+
+    /** P1：WITHERED 格整格枯萎色（D17 候选色 A），优先于 MATURE 高亮。 */
+    @Test
+    void tileColorForWitheredIsWitheredColor() {
+        assertEquals(WITHERED, FarmView.tileColorFor(FarmPlot.FARM_PLOT, plantedSoil(GrowthStage.WITHERED, -1)));
     }
 
     @Test
@@ -148,6 +157,13 @@ class FarmViewTest {
     void tooltipTextForMature() {
         assertEquals("已成熟，可收获",
                 FarmView.tooltipTextFor(plantedSoil(GrowthStage.MATURE, -1), 0L));
+    }
+
+    /** P1：枯萎文案优先于成熟文案（规则 §16.5 必须玩家主动铲除）。 */
+    @Test
+    void tooltipTextForWithered() {
+        assertEquals("已枯萎，请铲除",
+                FarmView.tooltipTextFor(plantedSoil(GrowthStage.WITHERED, -1), 0L));
     }
 
     // ==================== 坏数据兜底：null 枚举不抛 NPE（P1 设计文档 §3：crop_type 允许 NULL） ====================

@@ -27,8 +27,8 @@ import java.util.List;
  * 接收用户操作 → 调用 Service → 刷新界面）。
  *
  * <p>点击 FARM_PLOT 格 → 选中并弹出操作菜单（UI规范 §11、§12），
- * 按土壤状态决定按钮：EMPTY→开垦、TILLED→播种、PLANTED→浇水、MATURE→收获
- * （{@link #actionsFor}）。业务一律走 A 的 Service：
+ * 按土壤状态决定按钮：EMPTY→开垦、TILLED→播种、PLANTED→浇水、MATURE→收获、
+ * WITHERED→铲除（P1，{@link #actionsFor}）。业务一律走 A 的 Service：
  * 开垦→LandService.reclaim、播种→PlantingService.plant、浇水→WateringService.water。
  *
  * <p>收获：C 模块 BasicHarvestService 已交付，本控制器只做接线——
@@ -113,7 +113,8 @@ public class FarmViewController {
      * 纯函数：按土壤状态推导可执行动作。
      *
      * <p>EMPTY→开垦、TILLED→播种、PLANTED（未成熟）→浇水、
-     * PLANTED 且作物 MATURE→收获；装饰区（null）与 LOCKED 无动作
+     * PLANTED 且作物 MATURE→收获、PLANTED 且作物 WITHERED→铲除
+     * （只给铲除，不给浇水/收获，验收 §五十四）；装饰区（null）与 LOCKED 无动作
      * （P0 不产生 LOCKED，验收规范 §十四）。
      *
      * @param soil 目标格土地（装饰区为 null）
@@ -130,6 +131,10 @@ public class FarmViewController {
                 return List.of(FarmAction.PLANT);
             case PLANTED:
                 Crop crop = soil.getCrop();
+                if (crop != null && crop.getGrowthStage() == GrowthStage.WITHERED) {
+                    // P1：枯萎只给铲除（免费，规则 §16.5），不出现浇水/收获按钮
+                    return List.of(FarmAction.CLEAR_WITHERED);
+                }
                 if (crop != null && crop.getGrowthStage() == GrowthStage.MATURE) {
                     return List.of(FarmAction.HARVEST);
                 }
@@ -254,6 +259,8 @@ public class FarmViewController {
                 return "浇水";
             case HARVEST:
                 return "收获";
+            case CLEAR_WITHERED:
+                return "铲除";
             default:
                 return "";
         }
@@ -273,6 +280,9 @@ public class FarmViewController {
                 break;
             case HARVEST:
                 harvest(soil);
+                break;
+            case CLEAR_WITHERED:
+                clearWithered(soil);
                 break;
             default:
                 break;
@@ -346,5 +356,17 @@ public class FarmViewController {
         } else {
             farmView.showTip(soil, actionMessageFor(result));
         }
+    }
+
+    /**
+     * 铲除枯萎：WITHERED→TILLED、crop=null（验收 §五十四；规则 §16.5 免费，
+     * 不扣金币、不发肥料）。土地状态机唯一入口复用
+     * {@link LandService#removeCropAndSetTilled}（决策 D20）。
+     */
+    private void clearWithered(Soil soil) {
+        landService.removeCropAndSetTilled(soil);
+        farmView.hideMenu();
+        farmView.setCurrentGameDay(gameClock.getGameDay());
+        farmView.refreshTile(soil);
     }
 }
