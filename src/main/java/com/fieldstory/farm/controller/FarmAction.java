@@ -19,5 +19,8 @@ public enum FarmAction {
     WATER,
 
     /** 收获：P0 禁用，C 模块职责（决策 D09） */
-    HARVEST
+    HARVEST,
+
+    /** 铲除枯萎：WITHERED → TILLED（LandService.removeCropAndSetTilled；D20、验收 §五十四） */
+    CLEAR_WITHERED
 }
