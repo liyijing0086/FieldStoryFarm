@@ -322,7 +322,8 @@ public class FarmView extends Pane {
                 tile.setStrokeWidth(1);
                 Tooltip tooltip = new Tooltip(tooltipTextFor(soil, currentGameDay));
                 tooltip.setShowDelay(Duration.millis(100));     // 默认 1000ms 太慢
-                tooltip.setShowDuration(Duration.seconds(5));   // 长文案给足停留时间
+                tooltip.setShowDuration(Duration.seconds(20));   // 长文案给足停留时间
+                tooltip.setHideDelay(Duration.millis(100));     // 移开后 100ms 收起，不突兀
                 Tooltip.install(tile, tooltip);
                 int clickedRow = row;
                 int clickedColumn = column;
@@ -333,6 +334,7 @@ public class FarmView extends Pane {
 
                 Rectangle cropBlock = new Rectangle();
                 cropBlock.setFill(COLOR_GRASS);
+                cropBlock.setMouseTransparent(true);   // 鼠标穿透：悬停/点击作物等同作用于地块
                 cropBlock.setVisible(false);
                 cropBlocks[row][column] = cropBlock;
                 getChildren().add(cropBlock);
