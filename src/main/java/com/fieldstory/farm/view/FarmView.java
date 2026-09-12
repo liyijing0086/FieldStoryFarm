@@ -14,6 +14,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -320,6 +321,8 @@ public class FarmView extends Pane {
                 tile.setStroke(COLOR_TEXT);
                 tile.setStrokeWidth(1);
                 Tooltip tooltip = new Tooltip(tooltipTextFor(soil, currentGameDay));
+                tooltip.setShowDelay(Duration.millis(100));     // 默认 1000ms 太慢
+                tooltip.setShowDuration(Duration.seconds(5));   // 长文案给足停留时间
                 Tooltip.install(tile, tooltip);
                 int clickedRow = row;
                 int clickedColumn = column;
