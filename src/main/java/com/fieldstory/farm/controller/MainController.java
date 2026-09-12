@@ -10,6 +10,7 @@ import com.fieldstory.farm.model.GameState;
 import com.fieldstory.farm.model.GrowthStage;
 import com.fieldstory.farm.model.Player;
 import com.fieldstory.farm.model.Soil;
+import com.fieldstory.farm.model.WeatherType;
 import com.fieldstory.farm.model.impl.BasicFarm;
 import com.fieldstory.farm.persistence.FarmStateAdapter;
 import com.fieldstory.farm.service.GrowthService;
@@ -17,6 +18,7 @@ import com.fieldstory.farm.service.HarvestService;
 import com.fieldstory.farm.service.LandService;
 import com.fieldstory.farm.service.PlantingService;
 import com.fieldstory.farm.service.WateringService;
+import com.fieldstory.farm.service.WitherService;
 import com.fieldstory.farm.service.economy.EconomyService;
 import com.fieldstory.farm.service.economy.impl.EconomyServiceImpl;
 import com.fieldstory.farm.service.impl.BasicGrowthService;
@@ -24,7 +26,9 @@ import com.fieldstory.farm.service.impl.BasicHarvestService;
 import com.fieldstory.farm.service.impl.BasicLandService;
 import com.fieldstory.farm.service.impl.BasicPlantingService;
 import com.fieldstory.farm.service.impl.BasicWateringService;
+import com.fieldstory.farm.service.impl.BasicWitherService;
 import com.fieldstory.farm.util.GameConstants;
+import com.fieldstory.farm.util.RandomProvider;
 import com.fieldstory.farm.view.StatusView;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -118,12 +122,14 @@ public class MainController {
             economy.buySeed(CropType.CARROT, 3);
         }
 
-        // e. A/B 各模块服务：开垦 / 播种 / 浇水 / 成长
+        // e. A/B 各模块服务：开垦 / 播种 / 浇水 / 成长 / 枯萎
         LandService land = new BasicLandService(economy);
         PlantingService planting = new BasicPlantingService(economy, model.getGameClock());
         WateringService watering = new BasicWateringService();
         GrowthService growth = new BasicGrowthService(watering);
         HarvestService harvest = new BasicHarvestService(economy, land);
+        // P1 枯萎服务：跨天回调记录当日天气并判定枯萎（A 模块 P1 设计文档 §8.2）
+        WitherService wither = new BasicWitherService();
 
         // f. 农场视图挂到场景中央（CENTER）
         FarmViewController farmViewController = new FarmViewController(
@@ -138,7 +144,7 @@ public class MainController {
         lastGrowthDay = model.getGameClock().getGameDay();
         FarmController farmLoop = new FarmController(model, statusView);
         farmLoop.setOnDayChanged(() -> applyDailyGrowth(
-                farm, growth, farmViewController, model.getGameClock().getGameDay()));
+                farm, growth, wither, farmViewController, model));
         farmLoop.startGameLoop();
 
         // i. 装配完成
@@ -161,17 +167,33 @@ public class MainController {
         }
     }
 
-    /** 跨天回调：按经过天数推进所有未成熟作物成长，并刷新农场视图。 */
-    private void applyDailyGrowth(Farm farm, GrowthService growth,
-                                  FarmViewController farmViewController, int currentDay) {
+    /**
+     * 跨天回调：滚动当日天气 → 对已播种作物记录天气并判定枯萎（A 模块 P1 设计文档 §8.2）
+     * → 按经过天数推进幸存作物成长（带天气倍率，验收规范 §四十九）→ 刷新农场视图。
+     *
+     * <p>枯萎接线顺序不可打乱：先 {@code recordDailyWeather} 再 {@code judgeWither}；
+     * 已枯萎作物由 {@code applyGrowth} 的 WITHERED 守卫跳过（A 模块设计文档 §6.3）。
+     * worldTime 按 day×24+hour 计算（决策 D14，GameClock 不提供 getWorldTime）。
+     */
+    private void applyDailyGrowth(Farm farm, GrowthService growth, WitherService wither,
+                                  FarmViewController farmViewController, FarmGameModel model) {
+        int currentDay = model.getGameClock().getGameDay();
         double elapsedDays = currentDay - lastGrowthDay;
         if (elapsedDays > 0) {
+            WeatherType today = model.getWeatherService().rollDailyWeather(currentDay);
+            double weatherRate = model.getWeatherService().getGrowthRate(today);
+            long worldTime = currentDay * 24L + model.getGameClock().getGameHour();
             for (Soil soil : farm.getSoils()) {
                 Crop crop = soil.getCrop();
-                if (crop != null
-                        && crop.getGrowthStage() != GrowthStage.MATURE
-                        && crop.getGrowthStage() != GrowthStage.WITHERED) {
-                    growth.applyGrowth(crop, elapsedDays);
+                if (crop != null) {
+                    wither.recordDailyWeather(crop, today, currentDay, worldTime);
+                    wither.judgeWither(crop, today, currentDay,
+                            BasicWitherService.WITHER_MITIGATION_P1,
+                            RandomProvider.nextDouble());
+                    if (crop.getGrowthStage() != GrowthStage.MATURE
+                            && crop.getGrowthStage() != GrowthStage.WITHERED) {
+                        growth.applyGrowth(crop, elapsedDays, weatherRate);
+                    }
                 }
             }
         }
