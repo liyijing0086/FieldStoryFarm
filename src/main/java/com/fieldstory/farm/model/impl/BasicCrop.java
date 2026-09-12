@@ -33,6 +33,21 @@ public class BasicCrop implements Crop {
      *  默认 -1 哨兵表示"从未浇水"，与游戏日 0 区分（决策 D14） */
     private long lastManualWaterGameDay = -1;
 
+    /** 累计干旱日数（规则文档 §二十二；验收规范 §五十） */
+    private int droughtCount;
+
+    /** 累计雨日数（规则文档 §二十一；验收规范 §五十） */
+    private int rainCount;
+
+    /** 累计绿雨日数（规则文档 §二十三；验收规范 §五十） */
+    private int greenRainCount;
+
+    /** 最近一次补水时刻（游戏小时；默认 -1 哨兵表示"无记录"，决策 D16） */
+    private long lastHydratedWorldTime = -1;
+
+    /** 连续干旱计数（规则文档 §二十九；验收规范 §五十） */
+    private int droughtStreak;
+
     @Override
     public UUID getCropUuid() {
         return cropUuid;
@@ -101,5 +116,55 @@ public class BasicCrop implements Crop {
     @Override
     public void setLastManualWaterGameDay(long lastManualWaterGameDay) {
         this.lastManualWaterGameDay = lastManualWaterGameDay;
+    }
+
+    @Override
+    public int getDroughtCount() {
+        return droughtCount;
+    }
+
+    @Override
+    public void setDroughtCount(int droughtCount) {
+        this.droughtCount = droughtCount;
+    }
+
+    @Override
+    public int getRainCount() {
+        return rainCount;
+    }
+
+    @Override
+    public void setRainCount(int rainCount) {
+        this.rainCount = rainCount;
+    }
+
+    @Override
+    public int getGreenRainCount() {
+        return greenRainCount;
+    }
+
+    @Override
+    public void setGreenRainCount(int greenRainCount) {
+        this.greenRainCount = greenRainCount;
+    }
+
+    @Override
+    public long getLastHydratedWorldTime() {
+        return lastHydratedWorldTime;
+    }
+
+    @Override
+    public void setLastHydratedWorldTime(long lastHydratedWorldTime) {
+        this.lastHydratedWorldTime = lastHydratedWorldTime;
+    }
+
+    @Override
+    public int getDroughtStreak() {
+        return droughtStreak;
+    }
+
+    @Override
+    public void setDroughtStreak(int droughtStreak) {
+        this.droughtStreak = droughtStreak;
     }
 }

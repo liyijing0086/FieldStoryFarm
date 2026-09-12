@@ -42,4 +42,29 @@ public interface Crop {
     long getLastManualWaterGameDay();
 
     void setLastManualWaterGameDay(long lastManualWaterGameDay);
+
+    /** 累计干旱日数（规则文档 §二十二；验收规范 §五十） */
+    int getDroughtCount();
+
+    void setDroughtCount(int droughtCount);
+
+    /** 累计雨日数（规则文档 §二十一；验收规范 §五十） */
+    int getRainCount();
+
+    void setRainCount(int rainCount);
+
+    /** 累计绿雨日数（规则文档 §二十三；验收规范 §五十） */
+    int getGreenRainCount();
+
+    void setGreenRainCount(int greenRainCount);
+
+    /** 最近一次补水时刻（游戏小时，-1 表示无记录；决策 D16） */
+    long getLastHydratedWorldTime();
+
+    void setLastHydratedWorldTime(long lastHydratedWorldTime);
+
+    /** 连续干旱计数（规则文档 §二十九；验收规范 §五十） */
+    int getDroughtStreak();
+
+    void setDroughtStreak(int droughtStreak);
 }
