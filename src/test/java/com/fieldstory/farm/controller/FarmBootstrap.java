@@ -37,6 +37,18 @@ import javafx.util.Duration;
 /**
  * 农场雏形装配器（C 模块 P0 可运行原型）。
  *
+ * <p><b>【C 模块本地调试原型入口】</b>
+ * 本类已从 {@code src/main/java} 迁移至 {@code src/test/java}，
+ * 仅作为 C 模块本地独立测试商店模块使用的调试入口：
+ * <ul>
+ *   <li>正式项目<b>不会调用</b>本类；</li>
+ *   <li>本类<b>不参与</b>主项目场景装配（正式场景由 E 的
+ *       {@link SceneManager} 统一组装）；</li>
+ *   <li>本类<b>不会参与</b>项目打包（不在主源码路径下）。</li>
+ * </ul>
+ * 迁移原因：原型装配会重复挂载 TOP/RIGHT 界面并额外启动游戏主循环，
+ * 与 SceneManager 的正式场景装配逻辑冲突，故移出主源码。
+ *
  * <p>一键装配 P0 闭环：农场（A 的 FarmView/FarmViewController）挂 CENTER、
  * 状态栏（D 的 StatusView）挂 TOP、临时商店面板挂 RIGHT（UI规范 §7 槽位布局），
  * 时间与作物成长由 D 的 FarmController 主循环驱动（每秒推进 10 游戏分钟）。
