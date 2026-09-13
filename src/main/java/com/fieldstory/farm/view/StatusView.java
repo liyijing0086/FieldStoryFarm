@@ -1,13 +1,17 @@
 package com.fieldstory.farm.view;
 
+import com.fieldstory.farm.model.EventState;
+import com.fieldstory.farm.model.EventType;
 import com.fieldstory.farm.model.FarmGameModel;
 import com.fieldstory.farm.model.GameClock;
 import com.fieldstory.farm.model.Player;
 import com.fieldstory.farm.model.WeatherState;
 import com.fieldstory.farm.model.WeatherType;
+import com.fieldstory.farm.service.EventService;
 import com.fieldstory.farm.service.WeatherService;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 
 /**
  * 顶部状态栏视图（D 模块 P0：世界环境；P1 升级天气显示）。
@@ -30,6 +34,12 @@ public class StatusView extends HBox {
     /** 天气状态（只读，可为 null）。 */
     private final WeatherState weatherState;
 
+    /** 事件服务（只读查询，可为 null）。 */
+    private final EventService eventService;
+
+    /** 事件状态（只读，可为 null）。 */
+    private final EventState eventState;
+
     /** 玩家（只读，可为 null；用于显示金币，B 模块数据）。 */
     private final Player player;
 
@@ -37,6 +47,7 @@ public class StatusView extends HBox {
     private final Label timeLabel;
     private final Label goldLabel;
     private final Label weatherLabel;
+    private final Label eventLabel;
 
     /**
      * 注入模型，初始化 UI 组件并调用 {@link #update()}。
@@ -86,12 +97,23 @@ public class StatusView extends HBox {
         this.weatherService = weatherService;
         this.weatherState = weatherState;
         this.player = player;
+        // P2：事件服务/状态从模型只读获取（P0/P1 公开构造签名保持不变）
+        this.eventService = model == null ? null : model.getEventService();
+        this.eventState = model == null ? null : model.getEventState();
         this.dayLabel = new Label();
         this.timeLabel = new Label();
         this.goldLabel = new Label();
         this.weatherLabel = new Label();
+        this.eventLabel = new Label();
         this.setSpacing(16);
-        this.getChildren().addAll(dayLabel, timeLabel, goldLabel, weatherLabel);
+        this.getChildren().addAll(dayLabel, timeLabel, goldLabel, weatherLabel, eventLabel);
+        // 文字色统一使用 7 色主色表 #493526（UI 规范，禁止自造色）
+        Color textColor = Color.web("#493526");
+        dayLabel.setTextFill(textColor);
+        timeLabel.setTextFill(textColor);
+        goldLabel.setTextFill(textColor);
+        weatherLabel.setTextFill(textColor);
+        eventLabel.setTextFill(textColor);
         update();
     }
 
@@ -104,6 +126,7 @@ public class StatusView extends HBox {
         timeLabel.setText(getDaytimeIcon() + " " + clock.getTimeString());
         goldLabel.setText(player == null ? "金币 --" : "金币 " + player.getGold());
         weatherLabel.setText(buildWeatherText());
+        eventLabel.setText(buildEventText());
     }
 
     /**
@@ -123,6 +146,25 @@ public class StatusView extends HBox {
             return "晴天";
         }
         return weatherService.getIcon(type) + " " + weatherService.getDisplayName(type);
+    }
+
+    /**
+     * 构造事件显示文本「图标 + 显示名」。
+     *
+     * <p>NPE 保护：{@code eventService} 或 {@code eventState} 为 null 时显示占位，
+     * 不抛异常（非功能需求 §2.2）。无事件（{@code NONE}）时显示「无事件」。
+     *
+     * @return 事件显示文本
+     */
+    private String buildEventText() {
+        if (eventService == null || eventState == null) {
+            return "无事件";
+        }
+        EventType type = eventState.getEventType();
+        if (type == null || type == EventType.NONE) {
+            return "无事件";
+        }
+        return eventService.getIcon(type) + " " + eventService.getDisplayName(type);
     }
 
     /**
@@ -152,5 +194,10 @@ public class StatusView extends HBox {
     /** 供测试读取天气文本。 */
     public String getWeatherText() {
         return weatherLabel.getText();
+    }
+
+    /** 供测试读取事件文本。 */
+    public String getEventText() {
+        return eventLabel.getText();
     }
 }

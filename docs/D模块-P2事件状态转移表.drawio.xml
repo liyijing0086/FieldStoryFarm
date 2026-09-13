@@ -1,0 +1,112 @@
+<mxfile host="app.diagrams.net" agent="FieldStoryFarm-D" version="24.0.0">
+  <diagram id="p2-event-transition-table" name="P2 事件状态转移表">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="title" value="P2 随机事件状态转移表（D 模块 · 世界环境）" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#493526;" vertex="1" parent="1">
+          <mxGeometry x="180" y="20" width="820" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- 表头 -->
+        <mxCell id="h1" value="转移" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#8B5E3C;strokeColor=#493526;fontColor=#FFF3DD;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="h2" value="源状态" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#8B5E3C;strokeColor=#493526;fontColor=#FFF3DD;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="110" y="80" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="h3" value="事件" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#8B5E3C;strokeColor=#493526;fontColor=#FFF3DD;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="260" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="h4" value="目标状态" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#8B5E3C;strokeColor=#493526;fontColor=#FFF3DD;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="440" y="80" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="h5" value="概率/条件" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#8B5E3C;strokeColor=#493526;fontColor=#FFF3DD;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="590" y="80" width="150" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="h6" value="来源" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#8B5E3C;strokeColor=#493526;fontColor=#FFF3DD;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="740" y="80" width="180" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- T1 -->
+        <mxCell id="r1c1" value="T1" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="120" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r1c2" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="120" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r1c3" value="rollDailyEvent" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="120" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r1c4" value="METEOR_SHOWER" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#75B7D9;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="120" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r1c5" value="5%" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="120" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r1c6" value="规则 §四十七/§四十八" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="120" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- T2 -->
+        <mxCell id="r2c1" value="T2" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="156" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r2c2" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="156" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r2c3" value="rollDailyEvent" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="156" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r2c4" value="MYSTERY_MERCHANT" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#A97850;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="156" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r2c5" value="8%" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="156" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r2c6" value="规则 §四十七/§四十九" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="156" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- T3 -->
+        <mxCell id="r3c1" value="T3" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="192" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r3c2" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="192" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r3c3" value="rollDailyEvent" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="192" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r3c4" value="ANIMAL_VISIT" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#7FAE55;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="192" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r3c5" value="10%" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="192" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r3c6" value="规则 §四十七/§五十" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="192" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- T4 -->
+        <mxCell id="r4c1" value="T4" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="228" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r4c2" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="228" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r4c3" value="rollDailyEvent" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="228" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r4c4" value="RAINBOW_DAY" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#E8C45C;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="228" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r4c5" value="3%" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="228" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r4c6" value="规则 §四十七/§五十一" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="228" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- T5 -->
+        <mxCell id="r5c1" value="T5" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="264" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r5c2" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="264" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r5c3" value="rollDailyEvent" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="264" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r5c4" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="264" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r5c5" value="74%" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="264" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r5c6" value="规则 §四十七" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="264" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- T6 -->
+        <mxCell id="r6c1" value="T6" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="300" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r6c2" value="METEOR_SHOWER" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#75B7D9;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="300" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r6c3" value="expireIfNeeded" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="300" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r6c4" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="300" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r6c5" value="now ≥ end（24h）" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="300" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r6c6" value="规则 §四十八/§八十一" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="300" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- T7 -->
+        <mxCell id="r7c1" value="T7" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="336" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r7c2" value="MYSTERY_MERCHANT" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#A97850;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="336" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r7c3" value="expireIfNeeded" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="336" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r7c4" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="336" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r7c5" value="now ≥ end（12h）" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="336" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r7c6" value="规则 §四十九/§八十一" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="336" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- T8 -->
+        <mxCell id="r8c1" value="T8" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="372" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r8c2" value="RAINBOW_DAY" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#E8C45C;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="372" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r8c3" value="expireIfNeeded" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="372" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r8c4" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="372" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r8c5" value="now ≥ end（24h）" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="372" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r8c6" value="规则 §五十一/§八十一" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="372" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- T9 -->
+        <mxCell id="r9c1" value="T9" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="40" y="408" width="70" height="36" as="geometry" /></mxCell>
+        <mxCell id="r9c2" value="ANIMAL_VISIT" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#7FAE55;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="110" y="408" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r9c3" value="即时结算" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="260" y="408" width="180" height="36" as="geometry" /></mxCell>
+        <mxCell id="r9c4" value="NONE" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="440" y="408" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r9c5" value="即时（无持续）" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="590" y="408" width="150" height="36" as="geometry" /></mxCell>
+        <mxCell id="r9c6" value="规则 §五十" style="shape=partialRectangle;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=11;" vertex="1" parent="1"><mxGeometry x="740" y="408" width="180" height="36" as="geometry" /></mxCell>
+
+        <!-- 说明 -->
+        <mxCell id="note" value="说明：&#10;1. 概率合计 74+5+8+10+3 = 100%（规则文档 §四十七）。&#10;2. 每日最多 1 个事件，一次随机抽取决定（规则文档 §四十七、验收规范 §九十）。&#10;3. 颜色仅使用 7 色主色表：#7FAE55、#A97850、#75B7D9、#FFF3DD、#8B5E3C、#493526、#E8C45C。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=11;fontColor=#493526;" vertex="1" parent="1">
+          <mxGeometry x="40" y="470" width="880" height="80" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

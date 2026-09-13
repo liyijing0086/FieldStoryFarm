@@ -13,6 +13,7 @@ import javafx.util.Duration;
 import java.util.List;
 
 import static com.fieldstory.farm.util.GameConstants.GAME_DAYS_PER_TICK;
+import static com.fieldstory.farm.util.GameConstants.WEATHER_RATE_P0;
 
 /**
  * 农场主控制器（D 模块 P0：世界环境）。
@@ -24,7 +25,8 @@ import static com.fieldstory.farm.util.GameConstants.GAME_DAYS_PER_TICK;
  *
  * <p><b>成长协调（验收规范 §3.1）：</b>D 负责"什么时候推进"，
  * A 负责"怎么成长"。本类在每次 tick 后按经过游戏天数遍历当前 Farm 的作物，
- * 调用 A 模块 {@link GrowthService#applyGrowth(Crop, double)}；
+ * 调用 A 模块 {@link GrowthService#applyGrowth(Crop, double, double)}，
+ * 并传入 D 模块提供的当前天气倍率 {@code WeatherRate}（验收规范 §四十九）；
  * 成长公式不在本类重复实现。
  *
  * <p><b>跨天回调（A 模块 GrowthService 接入点）：</b>主循环检测到游戏日递增时，
@@ -99,7 +101,7 @@ public class FarmController {
      *
      * <p>成长协调：遍历当前 Farm 全部 Soil，对已播种（crop 非 null）的作物
      * 按 {@link com.fieldstory.farm.util.GameConstants#GAME_DAYS_PER_TICK}
-     * 调用 {@code growthService.applyGrowth(crop, elapsedGameDays)}。
+     * 与当前天气倍率调用 {@code growthService.applyGrowth(crop, elapsedGameDays, weatherRate)}。
      * Farm 未装配或 GrowthService 未注入时跳过（P0 早期装配前）。
      *
      * @return 已配置的定时器
@@ -136,7 +138,27 @@ public class FarmController {
      * <p>Farm 未装配或 GrowthService 未注入时不做任何事。
      */
     private void advanceCrops() {
-        advanceCrops(model.getFarm(), growthService, GAME_DAYS_PER_TICK);
+        advanceCrops(model.getFarm(), growthService, GAME_DAYS_PER_TICK,
+                currentWeatherRate());
+    }
+
+    /**
+     * 读取当前天气的成长倍率 {@code WeatherRate}（D 模块提供，验收规范 §四十九）。
+     *
+     * <p>P1 成长公式 {@code BaseDailyProgress × ElapsedGameDays × WeatherRate × OperationRate}
+     * 中的 {@code WeatherRate} 由 D 模块 {@link com.fieldstory.farm.service.WeatherService#getGrowthRate}
+     * 提供；D 只负责取值并传给 A 模块 {@link GrowthService}，不参与公式组装（D 模块 P1 文档 §1.4）。
+     *
+     * <p>天气服务/状态未装配时返回 {@link com.fieldstory.farm.util.GameConstants#WEATHER_RATE_P0}
+     * （1.0），保持 P0 行为，避免早期装配前 NPE。
+     *
+     * @return 当前天气成长倍率
+     */
+    private double currentWeatherRate() {
+        if (model.getWeatherService() == null || model.getWeatherState() == null) {
+            return WEATHER_RATE_P0;
+        }
+        return model.getWeatherService().getGrowthRate(model.getWeatherState().getWeatherType());
     }
 
     /**
@@ -154,6 +176,29 @@ public class FarmController {
      */
     static void advanceCrops(Farm farm, GrowthService growthService,
                              double elapsedGameDays) {
+        advanceCrops(farm, growthService, elapsedGameDays, WEATHER_RATE_P0);
+    }
+
+    /**
+     * 纯函数：遍历 Farm 全部 Soil，对已播种作物按经过游戏天数与天气倍率调用成长服务。
+     *
+     * <p>D 只负责"什么时候推进"与"当前天气倍率是多少"，成长公式由 A 模块
+     * {@link GrowthService} 实现，本方法不重复任何成长规则（验收规范 §3.1）。
+     *
+     * <p>P1 升级（验收规范 §四十九）：调用
+     * {@link GrowthService#applyGrowth(Crop, double, double)} 传入 {@code weatherRate}，
+     * 使天气倍率进入成长公式。
+     *
+     * <p>空安全：farm / growthService / soils / soil 任一为 null 时安全跳过，
+     * 便于 P0 早期装配前调用与单元测试。
+     *
+     * @param farm             农田地图，可为 null
+     * @param growthService    成长服务，可为 null
+     * @param elapsedGameDays  本次经过的游戏天数
+     * @param weatherRate      当前天气成长倍率（D 模块提供）
+     */
+    static void advanceCrops(Farm farm, GrowthService growthService,
+                             double elapsedGameDays, double weatherRate) {
         if (farm == null || growthService == null) {
             return;
         }
@@ -167,7 +212,7 @@ public class FarmController {
             }
             Crop crop = soil.getCrop();
             if (crop != null) {
-                growthService.applyGrowth(crop, elapsedGameDays);
+                growthService.applyGrowth(crop, elapsedGameDays, weatherRate);
             }
         }
     }

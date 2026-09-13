@@ -98,4 +98,22 @@ class GrowthServiceTest {
         growthService.applyGrowth(crop, 0.0);
         assertEquals(expected, crop.getGrowthStage());
     }
+
+    /**
+     * P1 过渡重载向后兼容：默认 3 参 {@code applyGrowth(crop, days, weatherRate)}
+     * 忽略 weatherRate、委托 2 参版本，保证 A 现有实现无需改动即可编译
+     * （跨模块协商点，验收规范 §四十九）。
+     */
+    @Test
+    void applyGrowthThreeArgDefaultDelegatesToTwoArg() {
+        Crop crop = wheat();
+        crop.setGrowthProgress(95.0);
+        crop.setGrowthStage(GrowthStage.GROWING);
+
+        // 默认实现忽略 weatherRate，行为与 2 参一致
+        growthService.applyGrowth(crop, 1.0, 2.0);
+
+        assertEquals(100.0, crop.getGrowthProgress(), 1e-9);
+        assertEquals(GrowthStage.MATURE, crop.getGrowthStage());
+    }
 }

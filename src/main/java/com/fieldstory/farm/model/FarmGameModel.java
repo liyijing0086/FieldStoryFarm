@@ -1,8 +1,11 @@
 package com.fieldstory.farm.model;
 
+import com.fieldstory.farm.model.impl.BasicEventState;
 import com.fieldstory.farm.model.impl.BasicGameClock;
 import com.fieldstory.farm.model.impl.BasicWeatherState;
+import com.fieldstory.farm.service.EventService;
 import com.fieldstory.farm.service.WeatherService;
+import com.fieldstory.farm.service.impl.BasicEventService;
 import com.fieldstory.farm.service.impl.BasicWeatherService;
 
 /**
@@ -38,20 +41,33 @@ public class FarmGameModel {
     /** 天气服务（聚合，1 对 1）；P1 新增，供 A/C 模块只读调用（D 模块 P1 文档 §5.1/§5.2）。 */
     private final WeatherService weatherService;
 
+    /** 事件状态（聚合，1 对 1）；P2 新增，默认 {@code NONE}（规则文档 §四十七）。 */
+    private final EventState eventState;
+
+    /** 事件服务（聚合，1 对 1）；P2 新增，供 A/C 模块只读调用（D 模块 P2 文档 §5.1/§5.2）。 */
+    private final EventService eventService;
+
     /**
      * 默认构造：初始化 {@code gameClock = new BasicGameClock()}（第 1 天 06:00，验收规范 §5），
-     * 并初始化天气系统（{@code BasicWeatherState} + {@code BasicWeatherService}）。
+     * 并初始化天气系统（{@code BasicWeatherState} + {@code BasicWeatherService}）
+     * 与事件系统（{@code BasicEventState} + {@code BasicEventService}）。
+     *
+     * <p>初始化顺序：先建 {@code gameClock}，再建天气（不依赖时钟），
+     * 最后建事件（{@code BasicEventService} 依赖 {@code gameClock} 读取世界时间）。
      */
     public FarmGameModel() {
         this.gameClock = new BasicGameClock();
         this.weatherState = new BasicWeatherState();
         this.weatherService = new BasicWeatherService(this.weatherState);
+        this.eventState = new BasicEventState();
+        this.eventService = new BasicEventService(this.eventState, this.gameClock);
     }
 
     /**
      * 注入时钟构造（测试可注入 TestGameClock，规则 §八）。
      *
-     * <p>天气系统仍使用默认实现（{@code BasicWeatherState} + {@code BasicWeatherService}）。
+     * <p>天气系统仍使用默认实现（{@code BasicWeatherState} + {@code BasicWeatherService}）；
+     * 事件系统使用注入的时钟（{@code BasicEventState} + {@code BasicEventService}）。
      *
      * @param gameClock 游戏时钟
      */
@@ -59,6 +75,8 @@ public class FarmGameModel {
         this.gameClock = gameClock;
         this.weatherState = new BasicWeatherState();
         this.weatherService = new BasicWeatherService(this.weatherState);
+        this.eventState = new BasicEventState();
+        this.eventService = new BasicEventService(this.eventState, this.gameClock);
     }
 
     /**
@@ -114,6 +132,27 @@ public class FarmGameModel {
      */
     public WeatherState getWeatherState() {
         return weatherState;
+    }
+
+    /**
+     * 获取事件服务（供 A 模块读取 EventRate、C 模块读取事件品质分，D 模块 P2 文档 §5.1/§5.2）。
+     *
+     * <p>只读暴露：调用方只应使用查询方法（{@code isMeteorShower} / {@code isRainbowDay} 等），
+     * 事件抽取由上层协调器在跨日时调用 {@link EventService#rollDailyEvent(int)}。
+     *
+     * @return 事件服务
+     */
+    public EventService getEventService() {
+        return eventService;
+    }
+
+    /**
+     * 获取事件状态（供 E 模块存档读取 {@code active_event}，D 模块 P2 文档 §5.3）。
+     *
+     * @return 事件状态
+     */
+    public EventState getEventState() {
+        return eventState;
     }
 
     /**

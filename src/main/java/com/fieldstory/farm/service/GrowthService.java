@@ -45,4 +45,26 @@ public interface GrowthService {
      * @param elapsedGameDays 经过的游戏天数
      */
     void applyGrowth(Crop crop, double elapsedGameDays);
+
+    /**
+     * 应用成长（P1 升级：含天气倍率 WeatherRate）。
+     *
+     * <p><b>跨模块协商点（D ↔ A，验收规范 §四十九）：</b>
+     * P1 成长公式升级为
+     * {@code BaseDailyProgress × ElapsedGameDays × WeatherRate × OperationRate}，
+     * 其中 {@code WeatherRate} 由 D 模块 {@link com.fieldstory.farm.service.WeatherService#getGrowthRate}
+     * 提供，公式组装由 A 模块本接口实现（D 不越界）。
+     *
+     * <p>本方法为<b>向后兼容的过渡重载</b>：默认实现忽略 {@code weatherRate}、
+     * 委托给 {@link #applyGrowth(Crop, double)}，保证 A 模块现有实现无需改动即可编译。
+     * A 模块（lyj）确认签名后应 override 本方法，将 {@code weatherRate} 纳入公式；
+     * 届时 D 侧 {@code FarmController} 已按本签名传参，无需再改。
+     *
+     * @param crop            目标作物
+     * @param elapsedGameDays 经过的游戏天数
+     * @param weatherRate     天气成长倍率（D 模块提供：晴 1.0 / 雨 1.5 / 旱 0.5 / 绿雨 2.0）
+     */
+    default void applyGrowth(Crop crop, double elapsedGameDays, double weatherRate) {
+        applyGrowth(crop, elapsedGameDays);
+    }
 }

@@ -1,0 +1,99 @@
+<mxfile host="app.diagrams.net" agent="FieldStoryFarm-D" version="24.0.0">
+  <diagram id="p2-event-state-machine" name="P2 随机事件状态机">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="826" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 标题 -->
+        <mxCell id="title" value="P2 随机事件状态机（D 模块 · 世界环境）&#10;每日 00:00 调用 rollDailyEvent(dayIndex) 一次抽取；到期调用 expireIfNeeded(currentWorldTime) 关闭" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#493526;" vertex="1" parent="1">
+          <mxGeometry x="180" y="20" width="820" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- NONE 状态 -->
+        <mxCell id="state_none" value="NONE&#10;无事件&#10;（默认状态）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;fontColor=#493526;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="480" y="120" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- METEOR_SHOWER -->
+        <mxCell id="state_meteor" value="METEOR_SHOWER&#10;流星夜&#10;持续 24 游戏小时" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#75B7D9;strokeColor=#493526;fontColor=#493526;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="320" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- MYSTERY_MERCHANT -->
+        <mxCell id="state_merchant" value="MYSTERY_MERCHANT&#10;神秘商人&#10;持续 12 游戏小时" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#A97850;strokeColor=#493526;fontColor=#493526;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="320" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ANIMAL_VISIT -->
+        <mxCell id="state_animal" value="ANIMAL_VISIT&#10;小动物来访&#10;即时事件（无持续）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7FAE55;strokeColor=#493526;fontColor=#493526;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="320" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- RAINBOW_DAY -->
+        <mxCell id="state_rainbow" value="RAINBOW_DAY&#10;彩虹日&#10;持续 24 游戏小时" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8C45C;strokeColor=#493526;fontColor=#493526;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="840" y="320" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- 转移：NONE -> METEOR_SHOWER (5%) -->
+        <mxCell id="t1" value="T1 rollDailyEvent&#10;5%" style="endArrow=block;html=1;rounded=0;strokeColor=#493526;fontColor=#493526;fontSize=11;exitX=0.25;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="state_none" target="state_meteor">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 转移：NONE -> MYSTERY_MERCHANT (8%) -->
+        <mxCell id="t2" value="T2 rollDailyEvent&#10;8%" style="endArrow=block;html=1;rounded=0;strokeColor=#493526;fontColor=#493526;fontSize=11;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="state_none" target="state_merchant">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 转移：NONE -> ANIMAL_VISIT (10%) -->
+        <mxCell id="t3" value="T3 rollDailyEvent&#10;10%" style="endArrow=block;html=1;rounded=0;strokeColor=#493526;fontColor=#493526;fontSize=11;exitX=0.75;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="state_none" target="state_animal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 转移：NONE -> RAINBOW_DAY (3%) -->
+        <mxCell id="t4" value="T4 rollDailyEvent&#10;3%" style="endArrow=block;html=1;rounded=0;strokeColor=#493526;fontColor=#493526;fontSize=11;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="state_none" target="state_rainbow">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 转移：NONE -> NONE (74%) 自环 -->
+        <mxCell id="t5" value="T5 rollDailyEvent&#10;74%（无事件）" style="endArrow=block;html=1;rounded=0;strokeColor=#493526;fontColor=#493526;fontSize=11;exitX=0.5;exitY=0;entryX=0.5;entryY=0;" edge="1" parent="1" source="state_none" target="state_none">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="570" y="90" as="offset" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 转移：METEOR_SHOWER -> NONE (expire) -->
+        <mxCell id="t6" value="T6 expireIfNeeded&#10;（到期 24h）" style="endArrow=block;html=1;rounded=0;strokeColor=#8B5E3C;fontColor=#493526;fontSize=11;dashed=1;exitX=0.5;exitY=0;entryX=0.25;entryY=1;" edge="1" parent="1" source="state_meteor" target="state_none">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 转移：MYSTERY_MERCHANT -> NONE (expire) -->
+        <mxCell id="t7" value="T7 expireIfNeeded&#10;（到期 12h）" style="endArrow=block;html=1;rounded=0;strokeColor=#8B5E3C;fontColor=#493526;fontSize=11;dashed=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" edge="1" parent="1" source="state_merchant" target="state_none">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 转移：RAINBOW_DAY -> NONE (expire) -->
+        <mxCell id="t8" value="T8 expireIfNeeded&#10;（到期 24h）" style="endArrow=block;html=1;rounded=0;strokeColor=#8B5E3C;fontColor=#493526;fontSize=11;dashed=1;exitX=0.5;exitY=0;entryX=0.75;entryY=1;" edge="1" parent="1" source="state_rainbow" target="state_none">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 转移：ANIMAL_VISIT -> NONE (即时) -->
+        <mxCell id="t9" value="T9 即时结算后&#10;立即回到 NONE" style="endArrow=block;html=1;rounded=0;strokeColor=#8B5E3C;fontColor=#493526;fontSize=11;dashed=1;exitX=0.5;exitY=0;entryX=0.9;entryY=1;" edge="1" parent="1" source="state_animal" target="state_none">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 图例 -->
+        <mxCell id="legend_box" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFF3DD;strokeColor=#493526;" vertex="1" parent="1">
+          <mxGeometry x="120" y="470" width="900" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" value="图例与说明" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#493526;" vertex="1" parent="1">
+          <mxGeometry x="140" y="480" width="200" height="24" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_text" value="1. 状态：NONE（无事件）、METEOR_SHOWER（流星夜）、MYSTERY_MERCHANT（神秘商人）、ANIMAL_VISIT（小动物来访）、RAINBOW_DAY（彩虹日）。&#10;2. 事件：rollDailyEvent(dayIndex) 每日 00:00 一次抽取（规则文档 §四十七/§八十一）；expireIfNeeded(currentWorldTime) 到期关闭（规则文档 §八十一第 ⑤ 步）。&#10;3. 转移概率：无事件 74%、流星夜 5%、神秘商人 8%、小动物来访 10%、彩虹日 3%（合计 100%，规则文档 §四十七）。&#10;4. 一次随机抽取决定结果，禁止四个事件分别独立判断（验收规范 §九十）。&#10;5. 实线 = rollDailyEvent 抽取转移；虚线 = expireIfNeeded 到期/即时关闭转移。&#10;6. 颜色仅使用 7 色主色表：#7FAE55、#A97850、#75B7D9、#FFF3DD、#8B5E3C、#493526、#E8C45C。" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;fontSize=11;fontColor=#493526;spacingLeft=4;" vertex="1" parent="1">
+          <mxGeometry x="140" y="505" width="860" height="110" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
