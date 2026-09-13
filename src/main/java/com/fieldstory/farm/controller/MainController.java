@@ -29,19 +29,23 @@ import com.fieldstory.farm.service.impl.BasicWateringService;
 import com.fieldstory.farm.service.impl.BasicWitherService;
 import com.fieldstory.farm.util.GameConstants;
 import com.fieldstory.farm.util.RandomProvider;
+import com.fieldstory.farm.view.SeedQuickBuyView;
 import com.fieldstory.farm.view.StatusView;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.util.Duration;
 
 /**
  * 主界面控制器（E 场景组装：开始按钮装配 A/B/C/D 各模块，构成可玩最小闭环）。
  *
  * <p>装配职责：点击“开始游戏”后创建农场模型与各模块 Service，
- * 把农场视图挂到 CENTER、状态栏挂到 TOP，并启动主循环；
+ * 把农场视图挂到 CENTER、状态栏挂到 TOP、商店面板挂到 RIGHT，并启动主循环；
  * 跨天时由 {@link FarmController} 回调本类推进作物成长。
  *
  * <p>装配过程中的异常一律向上抛出（不吞掉），以便启动日志可见。
@@ -76,6 +80,9 @@ public class MainController {
 
     /** 上次记录的游戏日（跨天成长推进基准；-1 表示尚未初始化） */
     private int lastGrowthDay = -1;
+
+    /** 商店面板刷新 Timeline 强引用（防 GC 停止） */
+    private Timeline shopRefreshTimeline;
 
     @FXML
     private void initialize() {
@@ -136,6 +143,9 @@ public class MainController {
                 farm, land, planting, watering, harvest, model.getGameClock());
         farmViewController.mountToScene();
 
+        // f2. B 模块商店视图挂到场景右侧（RIGHT）——《接口约定-场景合并》§1：RIGHT = B 商店
+        SeedQuickBuyView shopView = mountShopPanel(economy);
+
         // g. 状态栏挂到场景顶部（TOP）
         StatusView statusView = new StatusView(model, player);
         buildTopBar(statusView);
@@ -146,6 +156,9 @@ public class MainController {
         farmLoop.setOnDayChanged(() -> applyDailyGrowth(
                 farm, growth, wither, farmViewController, model));
         farmLoop.startGameLoop();
+
+        // h2. 商店面板随主循环刷新：收获入账（金币）与播种消耗（种子）1 秒内可见
+        startShopRefresh(shopView);
 
         // i. 装配完成
         assembled = true;
@@ -211,6 +224,39 @@ public class MainController {
         } catch (IllegalStateException e) {
             setStatusMessage("尚无进行中的游戏，请先点击“开始游戏”。");
         }
+    }
+
+    /**
+     * 把 B 模块的种子快捷购买面板挂到场景右侧（RIGHT）。
+     *
+     * <p>《接口约定-场景合并》§1 约定 RIGHT 归 B 商店 / 玩家 UI；B 已交付
+     * {@link SeedQuickBuyView}（P0 快捷购买面板），由装配层（E）在开局时挂载，
+     * 模块自身不 {@code new Scene / Stage}（B 模块文档 §21）。
+     *
+     * <p>抽为独立方法便于单测「开局后商店面板已挂到 RIGHT」，
+     * 且不触发主循环与真实落盘。
+     *
+     * @param economy 经济服务（金币 / 种子唯一入口）
+     * @return 已挂载的商店面板
+     */
+    SeedQuickBuyView mountShopPanel(EconomyService economy) {
+        SeedQuickBuyController shopController = new SeedQuickBuyController(economy);
+        SeedQuickBuyView shopView = new SeedQuickBuyView(shopController);
+        SceneManager.getInstance().mount(SceneManager.Slot.RIGHT, shopView);
+        return shopView;
+    }
+
+    /**
+     * 每秒刷新商店面板：收获入账的金币与播种消耗的种子随主循环回写面板标签。
+     *
+     * <p>独立于 D 模块的 {@link FarmController} 主循环，避免改动 D 的文件；
+     * 只读取经济服务状态，不推进时间、不写业务。
+     */
+    private void startShopRefresh(SeedQuickBuyView shopView) {
+        shopRefreshTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(1), event -> shopView.refresh()));
+        shopRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        shopRefreshTimeline.play();
     }
 
     /**
