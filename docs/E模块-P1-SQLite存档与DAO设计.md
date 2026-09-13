@@ -114,8 +114,8 @@ DAO 构造注入 `java.sql.Connection`，**事务边界由 `SqliteSaveService` �
 ## 8. 运行与验证
 
 - 数据库文件：`data/farm.db`（相对运行目录）；`data/`、`*.db` 已在 `.gitignore` 忽略，禁止放入 `resources`（§一百四十四）。
-- 实机验证：删除 `data/farm.db` 后 `mvnw javafx:run` → 点「开始游戏」→ 自动迁移（日志 `已从旧 JSON 存档迁移玩家数据`）→ `farm.db` 生成，内容与 `save.json` 一致；关闭窗口自动存档，`save.json` 时间戳不变。
-- 实机验证（验收标准 4 农场闭环）：点「开始游戏」后关闭窗口 → `soil` 表 64 行、
+- 实机验证：删除 `data/farm.db` 后 `mvnw javafx:run` → 点「读取存档」→ 自动迁移（日志 `已从旧 JSON 存档迁移玩家数据`）→ `farm.db` 生成，内容与 `save.json` 一致；关闭窗口自动存档，`save.json` 时间戳不变。
+- 实机验证（验收标准 4 农场闭环）：点「开始新游戏」/「读取存档」后关闭窗口 → `soil` 表 64 行、
   `world_state.current_day_index` 为当前游戏日；再用一份含「已开垦/已播种地块 + 作物」的库重开应用，
   关闭后该地块与作物字段仍在（证明进入读档已还原到运行农场，退出回填又原样写回）。
 
@@ -125,7 +125,7 @@ DAO 构造注入 `java.sql.Connection`，**事务边界由 `SqliteSaveService` �
 - `world_state.current_weather/random_seed/last_real_time` 待 D 模块天气/时钟接入后写入（列已就位）。
 - **`GameState.plots` 与 A 模块 `Farm` 的同步（D3）已落地**：`persistence/FarmStateAdapter`
   负责双向映射（枚举 ↔ 名称、`long` 时间 ↔ 十进制字符串，坏数据降级不丢作物）。
-  `MainController` 开始游戏时 `restore`，并通过 `GameManager.setBeforeSaveHook` 在
+  `MainController` 开局时 `restore`，并通过 `GameManager.setBeforeSaveHook` 在
   `saveNow`/`saveAndExit` 落盘前 `capture`，因此「退出自动保存 / 进入读档」对地块与作物同样生效。
   游戏天数一并由该钩子写回 `world_state.current_day_index`，读档时经
   `FarmGameModel.restoreWorldTime` 还原；P1 不持久化当天时刻，恢复后按当日 06:00 起算（离线属 P2）。

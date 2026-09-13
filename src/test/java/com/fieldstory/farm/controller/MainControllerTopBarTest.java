@@ -130,7 +130,7 @@ class MainControllerTopBarTest {
                     .orElseThrow();
             return hintLabel.getText();
         });
-        assertEquals("尚无进行中的游戏，请先点击“开始游戏”。", hint);
+        assertEquals("尚无进行中的游戏，请先点击“开始新游戏”。", hint);
     }
 
     private static HBox asTopBar(SceneManager sceneManager) {

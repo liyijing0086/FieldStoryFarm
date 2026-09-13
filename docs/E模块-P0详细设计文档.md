@@ -19,7 +19,7 @@ P0 详细设计文档
 | 游戏状态机       | 是          | MAIN_MENU / PLAYING / PAUSED / EXITING     |
 | JSON 临时存档   | 是          | `JsonSaveService`，落盘 `data/save.json`      |
 | 场景组装骨架      | 是          | `SceneManager`（BorderPane 五区）              |
-| 主界面与开始/保存按钮 | 是          | `main-view.fxml` + `MainController`        |
+| 主界面与开局/存档按钮 | 是          | `main-view.fxml` + `MainController`        |
 | 退出自动存档      | 是          | `MainApplication.stop()` → `saveAndExit()` |
 | SQLite 正式存档 | 否（P1）      | 由 `SqliteSaveService` 替换实现                 |
 | 离线成长模拟      | 否（P2）      | 读档仅恢复退出瞬间状态                                |
@@ -445,18 +445,10 @@ public static FXMLLoader load(Class<?> controllerClass, String fxmlName) throws 
 
 - 字段：`@FXML Label welcomeText`；`private final GameManager gameManager = GameManager.getInstance();`
 - `initialize()`：`welcomeText.setText("欢迎来到田野故事农场！")`。
-- `onStartButtonClick()`：
-
-  ```java
-  boolean hasSave = gameManager.hasSavedGame();
-  GameState state = gameManager.start();
-  Player player = state.getPlayer();
-  String gold = (player == null) ? "?" : String.valueOf(player.getGold());
-  welcomeText.setText("开始耕种吧！当前金币：%s  游戏天数：%d%s".formatted(
-          gold, state.getGameDay(), hasSave ? "（已恢复存档）" : "（新游戏）"));
-  ```
+- `onNewGameButtonClick()`：「开始新游戏」→ `gameManager.startNewGame()`（**无视存档**，强制新档，金币 500）→ 装配农场闭环；
+- `onLoadButtonClick()`：「读取存档」→ `hasSavedGame()` 为假时仅提示「没有找到存档，请先点击“开始新游戏”。」且不进入游戏；为真时 `gameManager.start()` 读档还原退出瞬间状态。
 - `onSaveButtonClick()`：`try { gameManager.saveNow(); setText("进度已保存！"); }`
-  `catch (IllegalStateException e) { setText("尚无进行中的游戏，请先点击“开始游戏”。"); }`
+  `catch (IllegalStateException e) { setText("尚无进行中的游戏，请先点击“开始新游戏”。"); }`
 
 **对应 FXML（`main-view.fxml`）**
 
@@ -465,8 +457,8 @@ public static FXMLLoader load(Class<?> controllerClass, String fxmlName) throws 
       fx:controller="com.fieldstory.farm.controller.MainController">
     <padding><Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/></padding>
     <Label fx:id="welcomeText"/>
-    <Button text="开始游戏" onAction="#onStartButtonClick"/>
-    <Button text="保存进度" onAction="#onSaveButtonClick"/>
+    <Button text="开始新游戏" onAction="#onNewGameButtonClick"/>
+    <Button text="读取存档" onAction="#onLoadButtonClick"/>
 </VBox>
 ```
 
@@ -491,11 +483,11 @@ sequenceDiagram
     MA->>MA: setTitle / setScene / show
 ```
 
-### 5.2 开始 / 继续游戏（`onStartButtonClick` → `GameManager.start()`）
+### 5.2 开始新游戏 / 读取存档（`onNewGameButtonClick` → `startNewGame()`；`onLoadButtonClick` → `start()`）
 
 ```mermaid
 flowchart TD
-    A[点击“开始游戏”] --> B{state 已存在?}
+    A[点击“开始新游戏” / “读取存档”] --> B{state 已存在?}
     B -- 是 --> G[phase = PLAYING]
     B -- 否 --> C{hasSave?}
     C -- 是 --> D[load 读档]

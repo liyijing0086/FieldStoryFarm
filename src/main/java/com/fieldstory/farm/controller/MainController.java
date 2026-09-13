@@ -44,7 +44,7 @@ import javafx.util.Duration;
 /**
  * 主界面控制器（E 场景组装：开始按钮装配 A/B/C/D 各模块，构成可玩最小闭环）。
  *
- * <p>装配职责：点击“开始游戏”后创建农场模型与各模块 Service，
+ * <p>装配职责：主菜单点「开始新游戏」或「读取存档」后创建农场模型与各模块 Service，
  * 把农场视图挂到 CENTER、状态栏挂到 TOP、商店面板挂到 RIGHT，并启动主循环；
  * 跨天时由 {@link FarmController} 回调本类推进作物成长。
  *
@@ -89,16 +89,45 @@ public class MainController {
         welcomeText.setText("欢迎来到田野故事农场！");
     }
 
-    /** 开始 / 继续游戏：装配游戏最小闭环（农场可玩）。 */
+    /** 开始新游戏：无视历史存档，从第 1 天（金币 500）重新开局。 */
     @FXML
-    protected void onStartButtonClick() {
-        if (assembled) {
-            welcomeText.setText("游戏已在运行中。");
+    protected void onNewGameButtonClick() {
+        if (rejectIfRunning()) {
             return;
         }
+        assembleGame(true);
+    }
 
-        // b. 开始游戏：有存档恢复退出瞬间状态，无存档则新建（金币 500）
-        GameState state = gameManager.start();
+    /** 读取存档：从数据库恢复上次退出瞬间的进度；无存档时只提示，不进入游戏。 */
+    @FXML
+    protected void onLoadButtonClick() {
+        if (rejectIfRunning()) {
+            return;
+        }
+        if (!gameManager.hasSavedGame()) {
+            setStatusMessage("没有找到存档，请先点击“开始新游戏”。");
+            return;
+        }
+        assembleGame(false);
+    }
+
+    /** 开局按钮守卫：已在游戏中则提示并返回 {@code true}，避免重复装配。 */
+    private boolean rejectIfRunning() {
+        if (assembled) {
+            setStatusMessage("游戏已在运行中。");
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 装配游戏最小闭环（农场可玩）。
+     *
+     * @param newGame {@code true} 开始新游戏（强制新档）；{@code false} 读取存档
+     */
+    private void assembleGame(boolean newGame) {
+        // b. 取会话状态：新游戏强制新档（金币 500）；读取存档恢复退出瞬间状态
+        GameState state = newGame ? gameManager.startNewGame() : gameManager.start();
         Player player = state.getPlayer();
 
         // c. 农场模型（12×12，中心 8×8 为可种植区）
@@ -118,12 +147,11 @@ public class MainController {
             state.setGameDay(model.getGameClock().getGameDay());
         });
 
-        // d. 经济服务 + 新档/空库存赠送起始种子（联调临时方案，商店视图接入后取消）
+        // d. 经济服务 + 新档赠送起始种子（每样 3 颗、扣金币）。
+        //    只在「开始新游戏」时赠送：读档的种子库存必须严格以存档为准，
+        //    否则"种子用光后读档"会被当成空库存而白送。
         EconomyService economy = new EconomyServiceImpl(player);
-        int total = economy.getSeedCount(CropType.WHEAT)
-                + economy.getSeedCount(CropType.CORN)
-                + economy.getSeedCount(CropType.CARROT);
-        if (total == 0) {
+        if (newGame) {
             economy.buySeed(CropType.WHEAT, 3);
             economy.buySeed(CropType.CORN, 3);
             economy.buySeed(CropType.CARROT, 3);
@@ -222,7 +250,7 @@ public class MainController {
             gameManager.saveNow();
             setStatusMessage("进度已保存！");
         } catch (IllegalStateException e) {
-            setStatusMessage("尚无进行中的游戏，请先点击“开始游戏”。");
+            setStatusMessage("尚无进行中的游戏，请先点击“开始新游戏”。");
         }
     }
 

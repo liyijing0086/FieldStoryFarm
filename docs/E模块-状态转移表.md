@@ -94,7 +94,7 @@
 
 1. **`start()` 没有阶段守卫** → `EXITING` 可被重新拉回 `PLAYING`（T5）；`PAUSED → start()` 也成立（T4），绕过 `resume()` 守卫。若要让 `EXITING` 成为严格终态，需给 `start()` 加 `requirePhase(MAIN_MENU)`。
 2. **`start()` 对 `state` 幂等，对阶段不幂等** → 只要 `state != null` 就不再读档。**同进程内"回主菜单再读档"不生效**；需多档位/多周目时，得重启进程或新增显式重置方法（如 `resetForNewSession()`）。
-3. **`PAUSED` 目前无 UI 入口** → `main-view.fxml` 只有两个按钮：「开始游戏」`#onStartButtonClick`、「保存进度」`#onSaveButtonClick`。`pause()` / `resume()` 只有测试能触发（`pauseResumeFollowStateMachine`）。状态机本身完整，接 UI 即可用。（补充：开局后农场视图会替换 CENTER 主菜单，`main-view.fxml` 的「保存进度」随即不可达；现已由装配层在常驻 TOP 追加手动存档按钮，见 `MainController#buildTopBar`。）
+3. **`PAUSED` 目前无 UI 入口** → `main-view.fxml` 只有两个按钮：「开始新游戏」`#onNewGameButtonClick`、「读取存档」`#onLoadButtonClick`。`pause()` / `resume()` 只有测试能触发（`pauseResumeFollowStateMachine`）。状态机本身完整，接 UI 即可用。（补充：开局后农场视图会替换 CENTER 主菜单，`main-view.fxml` 的开局按钮随即不可达；现已由装配层在常驻 TOP 追加手动存档按钮，见 `MainController#buildTopBar`。）
 
 ---
 
@@ -252,4 +252,4 @@ E 模块**不定义也不转移**土地状态。`PlotState.state` 与 `crop.grow
 | `JsonSaveService` | `persistence/JsonSaveService.java` | `SAVE_VERSION=2`、`MIN_SUPPORTED_VERSION=1`、`SCHEMA="P0-json"` |
 | `PlotState` | `model/PlotState.java` | `plotId` / `row` / `column` / `state` + 作物字段（全为字符串快照） |
 | `MainApplication` | `view/MainApplication.java` | `stop()` → `GameManager.getInstance().saveAndExit()`（退出自动存档） |
-| `MainController` | `controller/MainController.java` | 「开始游戏」`onStartButtonClick` → `start()`；「保存进度」`onSaveButtonClick` → `saveNow()` |
+| `MainController` | `controller/MainController.java` | 「开始新游戏」`onNewGameButtonClick` → `startNewGame()`；「读取存档」`onLoadButtonClick` → `start()`；「保存进度」（常驻 TOP）`onSaveButtonClick` → `saveNow()` |

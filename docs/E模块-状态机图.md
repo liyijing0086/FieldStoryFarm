@@ -277,7 +277,7 @@ graph LR
 
 | # | 事项 | 影响 | 建议 |
 |---|---|---|---|
-| 1 | `pause()` / `resume()` 已实现且有测试覆盖，但**无 UI 入口**（MainController 只有「开始」「保存」两个按钮） | `PAUSED` 状态目前只有测试能到达 | 主菜单/游戏界面加暂停按钮或 ESC 绑定后即生效，无需改状态机 |
+| 1 | `pause()` / `resume()` 已实现且有测试覆盖，但**无 UI 入口**（MainController 主菜单只有「开始新游戏」「读取存档」两个按钮，另有常驻 TOP 的「保存进度」） | `PAUSED` 状态目前只有测试能到达 | 主菜单/游戏界面加暂停按钮或 ESC 绑定后即生效，无需改状态机 |
 | 2 | `saveAndExit()` 只做「原样落盘」，**自己不写 `currentWorldTime`** | 若无人写入，该字段落盘为 `null` | 由 D 时钟层在退出前 `state.setCurrentWorldTime(...)`；E 不越层实现时钟逻辑 |
 | 3 | `start()` 无阶段守卫 | `EXITING` 后可被 `start()` 拉回 `PLAYING`（T10） | 若要严格终态，加 `requirePhase(MAIN_MENU)` |
 | 4 | `start()` 对 `state` 幂等 | 同进程内换档/重读档不生效 | 需要时新增显式重置方法（如 `resetForNewSession()`） |

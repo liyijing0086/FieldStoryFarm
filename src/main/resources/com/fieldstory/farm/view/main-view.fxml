@@ -12,6 +12,6 @@
     </padding>
 
     <Label fx:id="welcomeText"/>
-    <Button text="开始游戏" onAction="#onStartButtonClick"/>
-    <Button text="保存进度" onAction="#onSaveButtonClick"/>
+    <Button text="开始新游戏" onAction="#onNewGameButtonClick"/>
+    <Button text="读取存档" onAction="#onLoadButtonClick"/>
 </VBox>
