@@ -10,7 +10,8 @@ import java.util.UUID;
 /**
  * <p>创建一株全新作物的初始状态（验收规范 §二十 字段清单）：
  * 随机 cropUuid、growthStage=SEED、growthProgress=0、
- * manualWaterCount=0、lastManualWaterGameDay=-1（哨兵：从未浇水）。
+ * manualWaterCount=0、lastManualWaterGameDay=-1（哨兵：从未浇水）、
+ * 天气记录 5 字段 0/0/0/-1/0（P1 验收规范 §五十，D16 哨兵口径）。
  */
 public final class CropFactory {
 
@@ -34,6 +35,11 @@ public final class CropFactory {
         crop.setPlantWorldTime(plantWorldTime);
         crop.setManualWaterCount(0);
         crop.setLastManualWaterGameDay(-1);// -1 哨兵：从未浇水（游戏日从 0 起，不能用 0 表示"未浇"）
+        crop.setDroughtCount(0);
+        crop.setRainCount(0);
+        crop.setGreenRainCount(0);
+        crop.setLastHydratedWorldTime(-1);// -1 哨兵：无补水记录（D16，与 lastManualWaterGameDay 对称）
+        crop.setDroughtStreak(0);
         return crop;
     }
 }

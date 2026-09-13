@@ -13,6 +13,11 @@ import com.fieldstory.farm.service.WateringService;
  * 天气/装饰/事件 Rate 在 P0 固定 1.0，公式中省略（仅注释占位，
  * 禁止在 P0 引入对应系统，验收规范 §二十四）。
  *
+ * <p>P1 升级（A 模块设计文档 §6）：override 3 参重载，
+ * 公式 {@code Base × Days × WeatherRate × OperationRate}（验收规范 §四十九）；
+ * 2 参实现委托 3 参（rate=1.0），P0 行为不变；
+ * {@code applyGrowth} 带 WITHERED 守卫（A 模块设计文档 §6.3）。
+ *
  * <p>本实现为纯函数服务，不依赖 GameClock、不使用系统时间：
  * {@code elapsedGameDays} 由调用方按"经过游戏小时 ÷ 24"折算传入
  * （验收规范 §二十五），支持非整日成长。
@@ -36,16 +41,39 @@ public class BasicGrowthService implements GrowthService {
 
     @Override
     public double calculateGrowthDelta(Crop crop, double elapsedGameDays) {
+        return calculateGrowthDelta(crop, elapsedGameDays, 1.0);
+    }
+
+    @Override
+    public double calculateGrowthDelta(Crop crop, double elapsedGameDays,
+            double weatherRate) {
+        // 坏数据兜底：crop_type 无法识别时为 null（存档允许 crop_type=NULL），
+        // 无法取每日基础进度，降级为 0（不成长）而非抛 NPE 中断跨天循环。
+        if (crop.getCropType() == null) {
+            return 0.0;
+        }
         double base = crop.getCropType().getBaseDailyProgress();
-        // 天气/装饰/事件 Rate 在 P0 固定 1.0，公式中省略（验收规范 §二十四）
+        // P1 公式（验收规范 §四十九）：Base × Days × WeatherRate × OperationRate；
+        // DecorationRate P1 不加（预留第 4 参，A 模块设计文档 §6.4）
         double operationRate = 1.0 + wateringService.calculateWaterGrowthBonus(crop);
-        return base * elapsedGameDays * operationRate;
+        return base * elapsedGameDays * weatherRate * operationRate;
     }
 
     @Override
     public void applyGrowth(Crop crop, double elapsedGameDays) {
+        applyGrowth(crop, elapsedGameDays, 1.0);
+    }
+
+    @Override
+    public void applyGrowth(Crop crop, double elapsedGameDays,
+            double weatherRate) {
+        // P1 守卫：枯萎作物不再成长（A 模块设计文档 §6.3），
+        // 防止 stageOf 把 WITHERED 重算回正常阶段。
+        if (crop.getGrowthStage() == GrowthStage.WITHERED) {
+            return;
+        }
         double newProgress = Math.min(100.0, crop.getGrowthProgress()
-                + calculateGrowthDelta(crop, elapsedGameDays));
+                + calculateGrowthDelta(crop, elapsedGameDays, weatherRate));
         crop.setGrowthProgress(newProgress);
         crop.setGrowthStage(stageOf(newProgress));
     }

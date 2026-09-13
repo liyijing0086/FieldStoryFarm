@@ -4,12 +4,14 @@ import com.fieldstory.farm.model.CropType;
 import com.fieldstory.farm.model.GameState;
 import com.fieldstory.farm.model.PlotState;
 import com.fieldstory.farm.persistence.JsonSaveService;
+import com.fieldstory.farm.service.SaveService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -143,5 +145,57 @@ class GameManagerTest {
         gm.pause();
         gm.saveAndExit();
         assertEquals(GamePhase.EXITING, gm.currentPhase());
+    }
+
+    @Test
+    void beforeSaveHookRunsOnBothSavePaths() {
+        GameManager gm = new GameManager(jsonService("hook.json"));
+        gm.start();
+        AtomicInteger runs = new AtomicInteger();
+        gm.setBeforeSaveHook(runs::incrementAndGet);
+
+        gm.saveNow();
+        assertEquals(1, runs.get(), "手动保存应先回填运行态");
+
+        gm.saveAndExit();
+        assertEquals(2, runs.get(), "退出自动保存也应先回填运行态");
+    }
+
+    @Test
+    void beforeSaveHookNotRunWhenThereIsNothingToSave() {
+        GameManager gm = new GameManager(jsonService("hook-none.json"));
+        AtomicInteger runs = new AtomicInteger();
+        gm.setBeforeSaveHook(runs::incrementAndGet);
+
+        // 主菜单退出与「未开始就保存」都不落盘，也不应回填
+        gm.saveAndExit();
+        assertThrows(IllegalStateException.class, gm::saveNow);
+        assertEquals(0, runs.get());
+    }
+
+    @Test
+    void startFallsBackToNewGameWhenHasSaveFails() {
+        SaveService versionMismatch = new SaveService() {
+            @Override
+            public boolean hasSave() {
+                throw new IllegalStateException("数据库结构版本高于程序支持版本");
+            }
+
+            @Override
+            public void save(GameState state) {
+                // 不落盘
+            }
+
+            @Override
+            public GameState load() {
+                return null;
+            }
+        };
+        GameManager gm = new GameManager(versionMismatch);
+
+        GameState state = gm.start();
+
+        assertEquals(GamePhase.PLAYING, gm.currentPhase());
+        assertEquals(GameManager.INITIAL_GOLD, state.getPlayer().getGold());
     }
 }

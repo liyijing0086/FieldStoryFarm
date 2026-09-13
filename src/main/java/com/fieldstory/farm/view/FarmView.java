@@ -14,6 +14,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -26,7 +27,8 @@ import java.util.function.Consumer;
  * DECORATION_AREA 草地占位（UI规范 §6.3、§9）。
  *
  * <p>P0 为程序化占位渲染（正式像素素材 P1 替换，UI规范 §7 Tile 组合策略）；
- * 只允许使用 UI规范 §14 主色表 7 色与 §13 按钮三态色，禁止新增颜色。
+ * 只允许使用 UI规范 §14 主色表 7 色与 §13 按钮三态色；P1 枯萎色
+ * {@link #COLOR_WITHERED} 为 D17 候选色 A（待团队确认，如有变更仅改该常量）。
  *
  * <p>交互：悬停 Tooltip（UI规范 §10）、点击选中 3px 高亮描边（UI规范 §11）、
  * 隐藏式操作菜单并自动避让地图边界（UI规范 §12）。
@@ -68,6 +70,11 @@ public class FarmView extends Pane {
 
     /** 高亮 #E8C45C（UI规范 §14）：MATURE 待收获格、选中描边（§11） */
     public static final Color COLOR_HIGHLIGHT = Color.rgb(0xE8, 0xC4, 0x5C);
+
+    // ==================== 枯萎色（P1：D17 候选色 A，待团队确认后如有变更仅改此常量） ====================
+
+    /** 枯萎 #857766（D17 候选色 A；UI规范 §14 补充条目待团队确认）：WITHERED 格整格底色 */
+    public static final Color COLOR_WITHERED = Color.rgb(0x85, 0x77, 0x66);
 
     // ==================== 按钮三态（UI规范 §13） ====================
 
@@ -181,7 +188,7 @@ public class FarmView extends Pane {
      * 纯函数：按格类型与土壤状态推导底色。
      *
      * <p>五态（验收规范 §三十七）：EMPTY 木色 / TILLED 土地 / PLANTED 土地
-     * （MATURE 例外见下）/ MATURE 高亮 / LOCKED 木色占位；
+     * （MATURE 高亮、WITHERED 枯萎色例外见下）/ LOCKED 木色占位；
      * 装饰区草地（UI规范 §14）。
      *
      * @param plotType 格类型（非 FARM_PLOT 时 soil 为 null）
@@ -203,6 +210,10 @@ public class FarmView extends Pane {
                 return COLOR_SOIL;
             case PLANTED:
                 Crop crop = soil.getCrop();
+                if (crop != null && crop.getGrowthStage() == GrowthStage.WITHERED) {
+                    // P1：枯萎色优先于 MATURE 高亮（D17 候选色，验收 §五十四）
+                    return COLOR_WITHERED;
+                }
                 if (crop != null && crop.getGrowthStage() == GrowthStage.MATURE) {
                     return COLOR_HIGHLIGHT;
                 }
@@ -223,6 +234,11 @@ public class FarmView extends Pane {
      * @return 占位块边长（像素）
      */
     public static int cropBlockSizeFor(GrowthStage stage) {
+        // 坏数据兜底：growth_stage 无法识别时适配层降级为 null（FarmStateAdapter.parseEnum），
+        // 此处不得抛 NPE；未知阶段不绘制占位块（返回 0）。
+        if (stage == null) {
+            return 0;
+        }
         switch (stage) {
             case SEED:
                 return 8;
@@ -238,10 +254,22 @@ public class FarmView extends Pane {
     }
 
     /**
+     * 坏数据兜底：crop_type 无法识别时为 null（存档允许 {@code crop_type=NULL}，
+     * P1 设计文档 §3），返回占位名而非抛 NPE。
+     *
+     * @param crop 作物快照
+     * @return 展示名；{@code crop.getCropType()} 为 null 时返回占位名
+     */
+    private static String cropTypeNameFor(Crop crop) {
+        return crop.getCropType() == null ? "未知作物" : crop.getCropType().getDisplayName();
+    }
+
+    /**
      * 纯函数：悬停提示文案（UI规范 §10）。
      *
-     * <p>五种文案：null=装饰区占位、EMPTY=未开垦、TILLED=已开垦可播种、
-     * PLANTED=作物名+成长x%+今日已浇/未浇、MATURE=已成熟可收获。
+     * <p>六种文案：null=装饰区占位、EMPTY=未开垦、TILLED=已开垦可播种、
+     * PLANTED=作物名+成长x%+今日已浇/未浇、MATURE=已成熟可收获、
+     * WITHERED=已枯萎，请铲除（P1，规则 §16.5）。
      *
      * @param soil           该格土地（装饰区为 null）
      * @param currentGameDay 当前游戏日（来自 D 的 GameClock.getGameDay）
@@ -258,6 +286,10 @@ public class FarmView extends Pane {
                 return "已开垦，可播种";
             case PLANTED:
                 Crop crop = soil.getCrop();
+                if (crop != null && crop.getGrowthStage() == GrowthStage.WITHERED) {
+                    // P1：优先于成熟文案（规则 §16.5 必须玩家主动铲除）
+                    return "已枯萎，请铲除";
+                }
                 if (crop != null && crop.getGrowthStage() == GrowthStage.MATURE) {
                     return "已成熟，可收获";
                 }
@@ -266,7 +298,7 @@ public class FarmView extends Pane {
                 }
                 // "今日已浇"判定：lastManualWaterGameDay == 当前游戏日（决策 D14 long 用 ==）
                 boolean wateredToday = crop.getLastManualWaterGameDay() == currentGameDay;
-                return crop.getCropType().getDisplayName() + " 成长"
+                return cropTypeNameFor(crop) + " 成长"
                         + (int) crop.getGrowthProgress() + "% 今日"
                         + (wateredToday ? "已浇" : "未浇");
             case LOCKED:
@@ -289,6 +321,9 @@ public class FarmView extends Pane {
                 tile.setStroke(COLOR_TEXT);
                 tile.setStrokeWidth(1);
                 Tooltip tooltip = new Tooltip(tooltipTextFor(soil, currentGameDay));
+                tooltip.setShowDelay(Duration.millis(100));     // 默认 1000ms 太慢
+                tooltip.setShowDuration(Duration.seconds(20));   // 长文案给足停留时间
+                tooltip.setHideDelay(Duration.millis(100));     // 移开后 100ms 收起，不突兀
                 Tooltip.install(tile, tooltip);
                 int clickedRow = row;
                 int clickedColumn = column;
@@ -299,6 +334,7 @@ public class FarmView extends Pane {
 
                 Rectangle cropBlock = new Rectangle();
                 cropBlock.setFill(COLOR_GRASS);
+                cropBlock.setMouseTransparent(true);   // 鼠标穿透：悬停/点击作物等同作用于地块
                 cropBlock.setVisible(false);
                 cropBlocks[row][column] = cropBlock;
                 getChildren().add(cropBlock);

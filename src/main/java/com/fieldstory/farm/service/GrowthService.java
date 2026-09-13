@@ -10,6 +10,11 @@ import com.fieldstory.farm.model.Crop;
  * 天气/装饰/事件 Rate 在 P0 固定 1.0，公式中省略，
  * 对应系统仅为注释占位、禁止在 P0 引入（验收规范 §二十四）。
  *
+ * <p>P1 升级（A 模块设计文档 §6）：{@code applyGrowth} 与
+ * {@code calculateGrowthDelta} 各加 3 参重载（第三参 weatherRate，
+ * 验收规范 §四十九），默认委托 2 参版本（weatherRate=1.0），P0 完全兼容；
+ * DecorationRate P1 不加，预留第 4 参扩展（A 模块设计文档 §6.4）。
+ *
  * <p>本接口为纯函数服务，不依赖 GameClock（接口层禁止 import GameClock）：
  * elapsedGameDays 由调用方按"经过游戏小时 ÷ 24"折算传入，
  * 必须支持非整日成长（验收规范 §二十五）。
@@ -47,24 +52,39 @@ public interface GrowthService {
     void applyGrowth(Crop crop, double elapsedGameDays);
 
     /**
-     * 应用成长（P1 升级：含天气倍率 WeatherRate）。
+     * 计算单次成长增量（3 参重载，纯函数，不修改作物状态）。
      *
-     * <p><b>跨模块协商点（D ↔ A，验收规范 §四十九）：</b>
-     * P1 成长公式升级为
-     * {@code BaseDailyProgress × ElapsedGameDays × WeatherRate × OperationRate}，
-     * 其中 {@code WeatherRate} 由 D 模块 {@link com.fieldstory.farm.service.WeatherService#getGrowthRate}
-     * 提供，公式组装由 A 模块本接口实现（D 不越界）。
+     * <p>P1 公式（验收规范 §四十九）：
+     * {@code getBaseDailyProgress() × elapsedGameDays × weatherRate
+     * × (1 + WateringService.calculateWaterGrowthBonus(crop))}。
      *
-     * <p>本方法为<b>向后兼容的过渡重载</b>：默认实现忽略 {@code weatherRate}、
-     * 委托给 {@link #applyGrowth(Crop, double)}，保证 A 模块现有实现无需改动即可编译。
-     * A 模块（lyj）确认签名后应 override 本方法，将 {@code weatherRate} 纳入公式；
-     * 届时 D 侧 {@code FarmController} 已按本签名传参，无需再改。
+     * <p>默认委托 2 参版本（weatherRate=1.0），P0 完全兼容
+     * （A 模块设计文档 §6.2）。
+     *
+     * @param crop            目标作物
+     * @param elapsedGameDays 经过的游戏天数（经过游戏小时 ÷ 24，验收规范 §二十五）
+     * @param weatherRate     天气成长倍率（验收规范 §四十九，P0 固定 1.0）
+     * @return 成长增量
+     */
+    default double calculateGrowthDelta(Crop crop, double elapsedGameDays,
+            double weatherRate) {
+        return calculateGrowthDelta(crop, elapsedGameDays);
+    }
+
+    /**
+     * 应用成长（3 参重载）：累加成长值 → Math.min 封顶 100 → 按阈值更新阶段。
+     *
+     * <p>P1 守卫（A 模块设计文档 §6.3）：WITHERED 阶段作物直接返回，
+     * 不再成长，防止 stageOf 把枯萎作物重算回正常阶段。
+     *
+     * <p>默认委托 2 参版本（weatherRate=1.0），P0 完全兼容。
      *
      * @param crop            目标作物
      * @param elapsedGameDays 经过的游戏天数
-     * @param weatherRate     天气成长倍率（D 模块提供：晴 1.0 / 雨 1.5 / 旱 0.5 / 绿雨 2.0）
+     * @param weatherRate     天气成长倍率（验收规范 §四十九）
      */
-    default void applyGrowth(Crop crop, double elapsedGameDays, double weatherRate) {
+    default void applyGrowth(Crop crop, double elapsedGameDays,
+            double weatherRate) {
         applyGrowth(crop, elapsedGameDays);
     }
 }
