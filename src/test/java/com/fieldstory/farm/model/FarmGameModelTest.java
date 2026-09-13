@@ -92,6 +92,37 @@ class FarmGameModelTest {
         assertEquals(WeatherType.SUNNY, model.getWeatherState().getWeatherType());
     }
 
+    @Test
+    void eventServiceAndStateAreAggregatedAndNonNull() {
+        FarmGameModel model = new FarmGameModel();
+        assertNotNull(model.getEventService(), "P2 应聚合 EventService");
+        assertNotNull(model.getEventState(), "P2 应聚合 EventState");
+    }
+
+    @Test
+    void defaultEventIsNone() {
+        FarmGameModel model = new FarmGameModel();
+        assertEquals(EventType.NONE, model.getEventState().getEventType(),
+                "默认事件应为无事件（规则文档 §四十七）");
+    }
+
+    @Test
+    void eventServiceWritesToAggregatedState() {
+        FarmGameModel model = new FarmGameModel();
+        RandomProvider.setSeed(20240601L);
+        EventType rolled = model.getEventService().rollDailyEvent(5);
+        assertSame(model.getEventState().getEventType(), rolled,
+                "rollDailyEvent 应写入聚合的 EventState");
+    }
+
+    @Test
+    void injectedClockConstructorStillAggregatesEvent() {
+        FarmGameModel model = new FarmGameModel(new BasicGameClock(720));
+        assertNotNull(model.getEventService());
+        assertNotNull(model.getEventState());
+        assertEquals(EventType.NONE, model.getEventState().getEventType());
+    }
+
     /** 最小 Farm 桩，仅用于验证字段类型为 A 的 Farm 接口（裁决 ①）。 */
     private static final class StubFarm implements Farm {
         @Override

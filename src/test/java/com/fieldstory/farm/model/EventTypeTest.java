@@ -3,7 +3,9 @@ package com.fieldstory.farm.model;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * P0 EventType 枚举测试（D 模块 P0 文档 §8.2）。
@@ -35,5 +37,38 @@ class EventTypeTest {
             assertNotNull(type);
             assertEquals(type, EventType.valueOf(type.name()));
         }
+    }
+
+    @Test
+    void displayNameAndIconAreNonEmpty() {
+        for (EventType type : EventType.values()) {
+            assertNotNull(type.getDisplayName());
+            assertNotNull(type.getIcon());
+        }
+        assertEquals("流星夜", EventType.METEOR_SHOWER.getDisplayName());
+        assertEquals("神秘商人", EventType.MYSTERY_MERCHANT.getDisplayName());
+        assertEquals("小动物来访", EventType.ANIMAL_VISIT.getDisplayName());
+        assertEquals("彩虹日", EventType.RAINBOW_DAY.getDisplayName());
+        assertEquals("无事件", EventType.NONE.getDisplayName());
+    }
+
+    @Test
+    void durationHoursMatchRules() {
+        // 规则文档 §四十八~§五十一
+        assertEquals(24, EventType.METEOR_SHOWER.getDurationHours());
+        assertEquals(12, EventType.MYSTERY_MERCHANT.getDurationHours());
+        assertEquals(24, EventType.RAINBOW_DAY.getDurationHours());
+        assertEquals(0, EventType.ANIMAL_VISIT.getDurationHours());
+        assertEquals(0, EventType.NONE.getDurationHours());
+    }
+
+    @Test
+    void instantFlagMatchesRules() {
+        // 规则文档 §五十：小动物来访为即时事件
+        assertTrue(EventType.ANIMAL_VISIT.isInstant());
+        assertTrue(EventType.NONE.isInstant());
+        assertFalse(EventType.METEOR_SHOWER.isInstant());
+        assertFalse(EventType.MYSTERY_MERCHANT.isInstant());
+        assertFalse(EventType.RAINBOW_DAY.isInstant());
     }
 }

@@ -33,6 +33,7 @@ class FarmControllerTest {
 
         final List<Crop> grown = new ArrayList<>();
         final List<Double> elapsed = new ArrayList<>();
+        final List<Double> weatherRates = new ArrayList<>();
 
         @Override
         public double calculateGrowthDelta(Crop crop, double elapsedGameDays) {
@@ -43,6 +44,13 @@ class FarmControllerTest {
         public void applyGrowth(Crop crop, double elapsedGameDays) {
             grown.add(crop);
             elapsed.add(elapsedGameDays);
+        }
+
+        @Override
+        public void applyGrowth(Crop crop, double elapsedGameDays, double weatherRate) {
+            grown.add(crop);
+            elapsed.add(elapsedGameDays);
+            weatherRates.add(weatherRate);
         }
     }
 
@@ -170,5 +178,55 @@ class FarmControllerTest {
 
         assertEquals(1, growth.grown.size());
         assertEquals(crop, growth.grown.get(0));
+    }
+
+    // ==================== P1：WeatherRate 传参（验收规范 §四十九） ====================
+
+    @Test
+    void advanceCropsForwardsWeatherRateToGrowthService() {
+        Farm farm = new BasicFarm();
+        plantedSoil(farm, 2, 2);
+        RecordingGrowthService growth = new RecordingGrowthService();
+
+        FarmController.advanceCrops(farm, growth, GAME_DAYS_PER_TICK, 1.5);
+
+        assertEquals(1, growth.weatherRates.size());
+        assertEquals(1.5, growth.weatherRates.get(0));
+    }
+
+    @Test
+    void advanceCropsForwardsWeatherRateForEveryCrop() {
+        Farm farm = new BasicFarm();
+        plantedSoil(farm, 2, 2);
+        plantedSoil(farm, 3, 5);
+        RecordingGrowthService growth = new RecordingGrowthService();
+
+        FarmController.advanceCrops(farm, growth, GAME_DAYS_PER_TICK, 2.0);
+
+        assertEquals(2, growth.weatherRates.size());
+        assertEquals(2.0, growth.weatherRates.get(0));
+        assertEquals(2.0, growth.weatherRates.get(1));
+    }
+
+    @Test
+    void advanceCropsTwoArgOverloadDefaultsWeatherRateToP0() {
+        Farm farm = new BasicFarm();
+        plantedSoil(farm, 2, 2);
+        RecordingGrowthService growth = new RecordingGrowthService();
+
+        // 2 参重载（P0 兼容）应默认传 WEATHER_RATE_P0 = 1.0
+        FarmController.advanceCrops(farm, growth, GAME_DAYS_PER_TICK);
+
+        assertEquals(1, growth.weatherRates.size());
+        assertEquals(1.0, growth.weatherRates.get(0));
+    }
+
+    @Test
+    void advanceCropsWithNullFarmAndWeatherRateIsNoOp() {
+        RecordingGrowthService growth = new RecordingGrowthService();
+
+        FarmController.advanceCrops(null, growth, GAME_DAYS_PER_TICK, 2.0);
+
+        assertTrue(growth.grown.isEmpty());
     }
 }

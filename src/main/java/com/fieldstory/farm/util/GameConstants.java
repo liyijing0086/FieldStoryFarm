@@ -286,6 +286,105 @@ public final class GameConstants {
     public static final int WEATHER_QUALITY_GREEN_RAIN_CAP = 45;
 
 
+    // =========================================================
+    // P2随机事件概率（规则文档 §四十七）
+    // =========================================================
+
+    /**
+     * 无事件概率（百分比）。
+     *
+     * 规则文档 §四十七：74%。
+     */
+    public static final int EVENT_PROB_NONE = 74;
+
+    /**
+     * 流星夜概率（百分比）。
+     *
+     * 规则文档 §四十七：5%。
+     */
+    public static final int EVENT_PROB_METEOR_SHOWER = 5;
+
+    /**
+     * 神秘商人概率（百分比）。
+     *
+     * 规则文档 §四十七：8%。
+     */
+    public static final int EVENT_PROB_MYSTERY_MERCHANT = 8;
+
+    /**
+     * 小动物来访概率（百分比）。
+     *
+     * 规则文档 §四十七：10%。
+     */
+    public static final int EVENT_PROB_ANIMAL_VISIT = 10;
+
+    /**
+     * 彩虹日概率（百分比）。
+     *
+     * 规则文档 §四十七：3%。
+     */
+    public static final int EVENT_PROB_RAINBOW_DAY = 3;
+
+
+    // =========================================================
+    // P2随机事件持续时间（游戏小时，规则文档 §四十八~§五十一）
+    // =========================================================
+
+    /**
+     * 流星夜持续时间（游戏小时）。
+     *
+     * 规则文档 §四十八：24 游戏小时。
+     */
+    public static final int EVENT_DURATION_METEOR_SHOWER = 24;
+
+    /**
+     * 神秘商人持续时间（游戏小时）。
+     *
+     * 规则文档 §四十九：12 游戏小时。
+     */
+    public static final int EVENT_DURATION_MYSTERY_MERCHANT = 12;
+
+    /**
+     * 彩虹日持续时间（游戏小时）。
+     *
+     * 规则文档 §五十一：24 游戏小时。
+     */
+    public static final int EVENT_DURATION_RAINBOW_DAY = 24;
+
+
+    // =========================================================
+    // P2随机事件效果（规则文档 §四十八/§五十一）
+    // =========================================================
+
+    /**
+     * 流星夜品质分加成。
+     *
+     * 规则文档 §四十八：品质评分 +20。
+     */
+    public static final int EVENT_QUALITY_METEOR_SHOWER = 20;
+
+    /**
+     * 彩虹日品质分加成。
+     *
+     * 规则文档 §五十一：品质评分 +15。
+     */
+    public static final int EVENT_QUALITY_RAINBOW_DAY = 15;
+
+    /**
+     * 流星夜传说突破概率加成（百分比）。
+     *
+     * 规则文档 §四十八：传说突破概率 +10%。
+     */
+    public static final int EVENT_METEOR_LEGENDARY_BONUS = 10;
+
+    /**
+     * 彩虹日成长倍率（EventRate）。
+     *
+     * 规则文档 §五十一：EventRate ×2。
+     */
+    public static final double EVENT_RAINBOW_EVENT_RATE = 2.0;
+
+
     /**
      * 工具类禁止实例化。
      */
