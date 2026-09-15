@@ -1,0 +1,9 @@
+{
+  "profile": "P3_TEST_ONLY",
+  "notes": "土地解锁正式平衡值由P4定稿；P3只用本配置验证LOCKED购买闭环。",
+  "landUnlock": {
+    "plots": [
+      { "row": 2, "column": 2, "price": 100 }
+    ]
+  }
+}

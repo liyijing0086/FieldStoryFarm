@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.fieldstory.farm.controller.MainController"
+      styleClass="menu-screen">
+    <padding><Insets bottom="32" left="32" right="32" top="32"/></padding>
+    <VBox alignment="TOP_CENTER" spacing="12" maxWidth="560" styleClass="menu-card">
+        <padding><Insets top="24" right="34" bottom="24" left="34"/></padding>
+        <Label text="田野故事农场" styleClass="game-title"/>
+        <Label text="F I E L D   S T O R Y   F A R M" styleClass="game-subtitle"/>
+        <Region maxWidth="Infinity" prefHeight="2" styleClass="separator-line">
+            <VBox.margin><Insets bottom="2" top="6"/></VBox.margin>
+        </Region>
+        <Label fx:id="welcomeText" wrapText="true" textAlignment="CENTER" styleClass="normal-text"/>
+        <Button fx:id="newSaveButton" text="新建存档" onAction="#onNewSaveButtonClick" styleClass="primary-button">
+            <VBox.margin><Insets bottom="4" top="4"/></VBox.margin>
+        </Button>
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <VBox.margin><Insets top="8"/></VBox.margin>
+            <Label text="存档列表" styleClass="subsection-title"/>
+            <Region HBox.hgrow="ALWAYS" maxWidth="Infinity" prefHeight="2"
+                    styleClass="separator-line"/>
+        </HBox>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" prefHeight="200" styleClass="transparent-scroll">
+            <VBox fx:id="slotList" alignment="TOP_LEFT" spacing="10"/>
+        </ScrollPane>
+    </VBox>
+</VBox>
